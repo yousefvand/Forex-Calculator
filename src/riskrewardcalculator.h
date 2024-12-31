@@ -1,10 +1,18 @@
-#ifndef RISKREWARDCALCULATOR_H
-#define RISKREWARDCALCULATOR_H
+#pragma once
 
-class RiskRewardCalculator
-{
+#include <QWidget>
+
+namespace Ui {
+class RiskRewardCalculator;
+}
+
+class RiskRewardCalculator : public QWidget {
+    Q_OBJECT
+
 public:
-    RiskRewardCalculator();
-};
+    explicit RiskRewardCalculator(QWidget *parent = nullptr);
+    ~RiskRewardCalculator();
 
-#endif // RISKREWARDCALCULATOR_H
+private:
+    Ui::RiskRewardCalculator *ui;
+};

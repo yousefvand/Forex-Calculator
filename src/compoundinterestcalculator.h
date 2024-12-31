@@ -1,10 +1,18 @@
-#ifndef COMPOUNDINTERESTCALCULATOR_H
-#define COMPOUNDINTERESTCALCULATOR_H
+#pragma once
 
-class CompoundInterestCalculator
-{
+#include <QWidget>
+
+namespace Ui {
+class CompoundInterestCalculator;
+}
+
+class CompoundInterestCalculator : public QWidget {
+    Q_OBJECT
+
 public:
-    CompoundInterestCalculator();
-};
+    explicit CompoundInterestCalculator(QWidget *parent = nullptr);
+    ~CompoundInterestCalculator();
 
-#endif // COMPOUNDINTERESTCALCULATOR_H
+private:
+    Ui::CompoundInterestCalculator *ui;
+};

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>MainWindow</class>
- <widget class="QMainWindow" name="MainWindow">
+ <class>PipCalculator</class>
+ <widget class="QWidget" name="PipCalculator">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -11,125 +11,204 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Forex Calculator</string>
+   <string>Pip Calculator</string>
   </property>
-  <widget class="QWidget" name="centralwidget">
-   <widget class="QStackedWidget" name="stackedWidget">
-    <property name="geometry">
-     <rect>
-      <x>6</x>
-      <y>3</y>
-      <width>391</width>
-      <height>371</height>
-     </rect>
-    </property>
-    <widget class="QWidget" name="page"/>
-    <widget class="QWidget" name="page_2"/>
-   </widget>
-  </widget>
-  <widget class="QMenuBar" name="menubar">
+  <widget class="QWidget" name="centralwidget" native="true">
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>400</width>
+     <width>403</width>
+     <height>377</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QStatusBar" name="statusbar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>3</width>
      <height>22</height>
     </rect>
    </property>
-   <widget class="QMenu" name="menuCalculators">
-    <property name="title">
-     <string>&amp;Calculators</string>
-    </property>
-    <addaction name="actionPip_calculator"/>
-    <addaction name="actionMargin_calculator"/>
-    <addaction name="actionLot_Size_Calculator"/>
-    <addaction name="actionProfit_and_Loss_Calculator"/>
-    <addaction name="actionPosition_Size_Calculator"/>
-    <addaction name="actionRisk_Reward_Calculator"/>
-    <addaction name="actionSwap_Calculator"/>
-    <addaction name="actionCurrency_Converter"/>
-    <addaction name="actionFibonacci_Calculator"/>
-    <addaction name="actionVolatility_Calculator"/>
-    <addaction name="actionBreak_Even_Calculator"/>
-    <addaction name="actionCompound_Interest_Calculator"/>
-    <addaction name="actionRisk_Management_Calculator"/>
-   </widget>
-   <widget class="QMenu" name="menuLanguages">
-    <property name="title">
-     <string>&amp;Languages</string>
-    </property>
-    <widget class="QMenu" name="menuAsian_2">
-     <property name="title">
-      <string>Asian</string>
-     </property>
-     <addaction name="actionHindi_2"/>
-     <addaction name="actionBengali_2"/>
-     <addaction name="actionJapanese_2"/>
-     <addaction name="actionKorean_2"/>
-     <addaction name="actionVietnamese_2"/>
-     <addaction name="actionThai_2"/>
-    </widget>
-    <widget class="QMenu" name="menuEuropean">
-     <property name="title">
-      <string>European</string>
-     </property>
-     <addaction name="actionFrench_2"/>
-     <addaction name="actionGerman_2"/>
-     <addaction name="actionRussian_2"/>
-     <addaction name="actionPortuguese_2"/>
-     <addaction name="actionItalian"/>
-    </widget>
-    <widget class="QMenu" name="menuMiddle_Eastern">
-     <property name="title">
-      <string>Middle Eastern</string>
-     </property>
-     <addaction name="actionPersian_Farsi"/>
-     <addaction name="actionTurkish"/>
-     <addaction name="actionHebrew"/>
-     <addaction name="actionPashto"/>
-    </widget>
-    <widget class="QMenu" name="menuAfrican">
-     <property name="title">
-      <string>African</string>
-     </property>
-     <addaction name="actionSwahili"/>
-     <addaction name="actionHausa"/>
-     <addaction name="actionAmharic"/>
-     <addaction name="actionYoruba"/>
-     <addaction name="actionZulu"/>
-    </widget>
-    <widget class="QMenu" name="menuIndigenous">
-     <property name="title">
-      <string>Indigenous</string>
-     </property>
-     <addaction name="actionHaitian_Creole"/>
-     <addaction name="actionQuechua"/>
-     <addaction name="actionGuarani"/>
-     <addaction name="actionNahuatl"/>
-    </widget>
-    <addaction name="actionEnglish"/>
-    <addaction name="actionSpanish"/>
-    <addaction name="actionChinese_2"/>
-    <addaction name="actionArabic"/>
-    <addaction name="separator"/>
-    <addaction name="menuAsian_2"/>
-    <addaction name="menuEuropean"/>
-    <addaction name="menuMiddle_Eastern"/>
-    <addaction name="menuAfrican"/>
-    <addaction name="menuIndigenous"/>
-   </widget>
-   <widget class="QMenu" name="menuAbout">
-    <property name="title">
-     <string>&amp;About</string>
-    </property>
-    <addaction name="aboutQt"/>
-    <addaction name="aboutForexCalculator"/>
-   </widget>
-   <addaction name="menuCalculators"/>
-   <addaction name="menuLanguages"/>
-   <addaction name="menuAbout"/>
   </widget>
-  <widget class="QStatusBar" name="statusbar"/>
+  <widget class="QLabel" name="label_7">
+   <property name="geometry">
+    <rect>
+     <x>26</x>
+     <y>320</y>
+     <width>71</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Pip Value</string>
+   </property>
+  </widget>
+  <widget class="QComboBox" name="quoteCurrencyCombo">
+   <property name="geometry">
+    <rect>
+     <x>204</x>
+     <y>30</y>
+     <width>91</width>
+     <height>25</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QLineEdit" name="lotSizeInput">
+   <property name="geometry">
+    <rect>
+     <x>136</x>
+     <y>124</y>
+     <width>113</width>
+     <height>25</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_5">
+   <property name="geometry">
+    <rect>
+     <x>184</x>
+     <y>27</y>
+     <width>21</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>/</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_3">
+   <property name="geometry">
+    <rect>
+     <x>26</x>
+     <y>119</y>
+     <width>101</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Lot Size</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_2">
+   <property name="geometry">
+    <rect>
+     <x>204</x>
+     <y>60</y>
+     <width>101</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Quote Currency</string>
+   </property>
+  </widget>
+  <widget class="QLineEdit" name="exchangeRateInput">
+   <property name="geometry">
+    <rect>
+     <x>136</x>
+     <y>174</y>
+     <width>113</width>
+     <height>25</height>
+    </rect>
+   </property>
+   <property name="placeholderText">
+    <string>optional</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_6">
+   <property name="geometry">
+    <rect>
+     <x>26</x>
+     <y>220</y>
+     <width>101</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Pip Size</string>
+   </property>
+  </widget>
+  <widget class="QComboBox" name="baseCurrencyCombo">
+   <property name="geometry">
+    <rect>
+     <x>76</x>
+     <y>30</y>
+     <width>91</width>
+     <height>25</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label">
+   <property name="geometry">
+    <rect>
+     <x>78</x>
+     <y>60</y>
+     <width>91</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Base Currency</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_4">
+   <property name="geometry">
+    <rect>
+     <x>26</x>
+     <y>169</y>
+     <width>101</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Exchange Rate</string>
+   </property>
+  </widget>
+  <widget class="QComboBox" name="comboBox">
+   <property name="geometry">
+    <rect>
+     <x>136</x>
+     <y>224</y>
+     <width>111</width>
+     <height>25</height>
+    </rect>
+   </property>
+   <property name="currentText">
+    <string/>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="calculateButton">
+   <property name="geometry">
+    <rect>
+     <x>26</x>
+     <y>280</y>
+     <width>351</width>
+     <height>25</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Calculate</string>
+   </property>
+  </widget>
+  <widget class="QLineEdit" name="pipValueResult">
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
+   <property name="geometry">
+    <rect>
+     <x>92</x>
+     <y>320</y>
+     <width>151</width>
+     <height>25</height>
+    </rect>
+   </property>
+   <property name="readOnly">
+    <bool>true</bool>
+   </property>
+  </widget>
   <action name="aboutQt">
    <property name="text">
     <string>About Qt</string>

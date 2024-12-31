@@ -1,10 +1,18 @@
-#ifndef LOTSIZECALCULATOR_H
-#define LOTSIZECALCULATOR_H
+#pragma once
 
-class LotSizeCalculator
-{
+#include <QWidget>
+
+namespace Ui {
+class LotSizeCalculator;
+}
+
+class LotSizeCalculator : public QWidget {
+    Q_OBJECT
+
 public:
-    LotSizeCalculator();
-};
+    explicit LotSizeCalculator(QWidget *parent = nullptr);
+    ~LotSizeCalculator();
 
-#endif // LOTSIZECALCULATOR_H
+private:
+    Ui::LotSizeCalculator *ui;
+};

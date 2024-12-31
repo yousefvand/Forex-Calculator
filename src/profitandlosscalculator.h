@@ -1,10 +1,18 @@
-#ifndef PROFITANDLOSSCALCULATOR_H
-#define PROFITANDLOSSCALCULATOR_H
+#pragma once
 
-class ProfitAndLossCalculator
-{
+#include <QWidget>
+
+namespace Ui {
+class ProfitAndLossCalculator;
+}
+
+class ProfitAndLossCalculator : public QWidget {
+    Q_OBJECT
+
 public:
-    ProfitAndLossCalculator();
-};
+    explicit ProfitAndLossCalculator(QWidget *parent = nullptr);
+    ~ProfitAndLossCalculator();
 
-#endif // PROFITANDLOSSCALCULATOR_H
+private:
+    Ui::ProfitAndLossCalculator *ui;
+};

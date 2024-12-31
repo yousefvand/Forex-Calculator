@@ -1,10 +1,18 @@
-#ifndef RISKMANAGEMENTCALCULATOR_H
-#define RISKMANAGEMENTCALCULATOR_H
+#pragma once
 
-class RiskManagementCalculator
-{
+#include <QWidget>
+
+namespace Ui {
+class RiskManagementCalculator;
+}
+
+class RiskManagementCalculator : public QWidget {
+    Q_OBJECT
+
 public:
-    RiskManagementCalculator();
-};
+    explicit RiskManagementCalculator(QWidget *parent = nullptr);
+    ~RiskManagementCalculator();
 
-#endif // RISKMANAGEMENTCALCULATOR_H
+private:
+    Ui::RiskManagementCalculator *ui;
+};

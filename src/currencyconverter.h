@@ -1,10 +1,18 @@
-#ifndef CURRENCYCONVERTER_H
-#define CURRENCYCONVERTER_H
+#pragma once
 
-class CurrencyConverter
-{
+#include <QWidget>
+
+namespace Ui {
+class CurrencyConverter;
+}
+
+class CurrencyConverter : public QWidget {
+    Q_OBJECT
+
 public:
-    CurrencyConverter();
-};
+    explicit CurrencyConverter(QWidget *parent = nullptr);
+    ~CurrencyConverter();
 
-#endif // CURRENCYCONVERTER_H
+private:
+    Ui::CurrencyConverter *ui;
+};

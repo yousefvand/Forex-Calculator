@@ -1,10 +1,18 @@
-#ifndef VOLATILITYCALCULATOR_H
-#define VOLATILITYCALCULATOR_H
+#pragma once
 
-class VolatilityCalculator
-{
+#include <QWidget>
+
+namespace Ui {
+class VolatilityCalculator;
+}
+
+class VolatilityCalculator : public QWidget {
+    Q_OBJECT
+
 public:
-    VolatilityCalculator();
-};
+    explicit VolatilityCalculator(QWidget *parent = nullptr);
+    ~VolatilityCalculator();
 
-#endif // VOLATILITYCALCULATOR_H
+private:
+    Ui::VolatilityCalculator *ui;
+};

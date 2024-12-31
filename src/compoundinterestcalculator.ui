@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>MainWindow</class>
- <widget class="QMainWindow" name="MainWindow">
+ <class>CompoundInterestCalculator</class>
+ <widget class="QWidget" name="CompoundInterestCalculator">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -13,123 +13,39 @@
   <property name="windowTitle">
    <string>Forex Calculator</string>
   </property>
-  <widget class="QWidget" name="centralwidget">
-   <widget class="QStackedWidget" name="stackedWidget">
-    <property name="geometry">
-     <rect>
-      <x>6</x>
-      <y>3</y>
-      <width>391</width>
-      <height>371</height>
-     </rect>
-    </property>
-    <widget class="QWidget" name="page"/>
-    <widget class="QWidget" name="page_2"/>
-   </widget>
-  </widget>
-  <widget class="QMenuBar" name="menubar">
+  <widget class="QWidget" name="centralwidget" native="true">
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>400</width>
+     <width>441</width>
+     <height>351</height>
+    </rect>
+   </property>
+   <widget class="QLabel" name="label">
+    <property name="geometry">
+     <rect>
+      <x>110</x>
+      <y>150</y>
+      <width>221</width>
+      <height>51</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>CompoundInterestCalculator</string>
+    </property>
+   </widget>
+  </widget>
+  <widget class="QStatusBar" name="statusbar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>3</width>
      <height>22</height>
     </rect>
    </property>
-   <widget class="QMenu" name="menuCalculators">
-    <property name="title">
-     <string>&amp;Calculators</string>
-    </property>
-    <addaction name="actionPip_calculator"/>
-    <addaction name="actionMargin_calculator"/>
-    <addaction name="actionLot_Size_Calculator"/>
-    <addaction name="actionProfit_and_Loss_Calculator"/>
-    <addaction name="actionPosition_Size_Calculator"/>
-    <addaction name="actionRisk_Reward_Calculator"/>
-    <addaction name="actionSwap_Calculator"/>
-    <addaction name="actionCurrency_Converter"/>
-    <addaction name="actionFibonacci_Calculator"/>
-    <addaction name="actionVolatility_Calculator"/>
-    <addaction name="actionBreak_Even_Calculator"/>
-    <addaction name="actionCompound_Interest_Calculator"/>
-    <addaction name="actionRisk_Management_Calculator"/>
-   </widget>
-   <widget class="QMenu" name="menuLanguages">
-    <property name="title">
-     <string>&amp;Languages</string>
-    </property>
-    <widget class="QMenu" name="menuAsian_2">
-     <property name="title">
-      <string>Asian</string>
-     </property>
-     <addaction name="actionHindi_2"/>
-     <addaction name="actionBengali_2"/>
-     <addaction name="actionJapanese_2"/>
-     <addaction name="actionKorean_2"/>
-     <addaction name="actionVietnamese_2"/>
-     <addaction name="actionThai_2"/>
-    </widget>
-    <widget class="QMenu" name="menuEuropean">
-     <property name="title">
-      <string>European</string>
-     </property>
-     <addaction name="actionFrench_2"/>
-     <addaction name="actionGerman_2"/>
-     <addaction name="actionRussian_2"/>
-     <addaction name="actionPortuguese_2"/>
-     <addaction name="actionItalian"/>
-    </widget>
-    <widget class="QMenu" name="menuMiddle_Eastern">
-     <property name="title">
-      <string>Middle Eastern</string>
-     </property>
-     <addaction name="actionPersian_Farsi"/>
-     <addaction name="actionTurkish"/>
-     <addaction name="actionHebrew"/>
-     <addaction name="actionPashto"/>
-    </widget>
-    <widget class="QMenu" name="menuAfrican">
-     <property name="title">
-      <string>African</string>
-     </property>
-     <addaction name="actionSwahili"/>
-     <addaction name="actionHausa"/>
-     <addaction name="actionAmharic"/>
-     <addaction name="actionYoruba"/>
-     <addaction name="actionZulu"/>
-    </widget>
-    <widget class="QMenu" name="menuIndigenous">
-     <property name="title">
-      <string>Indigenous</string>
-     </property>
-     <addaction name="actionHaitian_Creole"/>
-     <addaction name="actionQuechua"/>
-     <addaction name="actionGuarani"/>
-     <addaction name="actionNahuatl"/>
-    </widget>
-    <addaction name="actionEnglish"/>
-    <addaction name="actionSpanish"/>
-    <addaction name="actionChinese_2"/>
-    <addaction name="actionArabic"/>
-    <addaction name="separator"/>
-    <addaction name="menuAsian_2"/>
-    <addaction name="menuEuropean"/>
-    <addaction name="menuMiddle_Eastern"/>
-    <addaction name="menuAfrican"/>
-    <addaction name="menuIndigenous"/>
-   </widget>
-   <widget class="QMenu" name="menuAbout">
-    <property name="title">
-     <string>&amp;About</string>
-    </property>
-    <addaction name="aboutQt"/>
-    <addaction name="aboutForexCalculator"/>
-   </widget>
-   <addaction name="menuCalculators"/>
-   <addaction name="menuLanguages"/>
-   <addaction name="menuAbout"/>
   </widget>
-  <widget class="QStatusBar" name="statusbar"/>
   <action name="aboutQt">
    <property name="text">
     <string>About Qt</string>

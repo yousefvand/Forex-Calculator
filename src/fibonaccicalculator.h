@@ -1,10 +1,18 @@
-#ifndef FIBONACCICALCULATOR_H
-#define FIBONACCICALCULATOR_H
+#pragma once
 
-class FibonacciCalculator
-{
+#include <QWidget>
+
+namespace Ui {
+class FibonacciCalculator;
+}
+
+class FibonacciCalculator : public QWidget {
+    Q_OBJECT
+
 public:
-    FibonacciCalculator();
-};
+    explicit FibonacciCalculator(QWidget *parent = nullptr);
+    ~FibonacciCalculator();
 
-#endif // FIBONACCICALCULATOR_H
+private:
+    Ui::FibonacciCalculator *ui;
+};

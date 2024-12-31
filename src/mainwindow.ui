@@ -13,6 +13,9 @@
   <property name="windowTitle">
    <string>Forex Calculator</string>
   </property>
+  <property name="windowIcon">
+   <iconset theme="system-help"/>
+  </property>
   <widget class="QWidget" name="centralwidget">
    <widget class="QStackedWidget" name="stackedWidget">
     <property name="geometry">
@@ -22,6 +25,9 @@
       <width>391</width>
       <height>371</height>
      </rect>
+    </property>
+    <property name="currentIndex">
+     <number>0</number>
     </property>
     <widget class="QWidget" name="page"/>
     <widget class="QWidget" name="page_2"/>
@@ -40,19 +46,19 @@
     <property name="title">
      <string>&amp;Calculators</string>
     </property>
-    <addaction name="actionPip_calculator"/>
-    <addaction name="actionMargin_calculator"/>
-    <addaction name="actionLot_Size_Calculator"/>
-    <addaction name="actionProfit_and_Loss_Calculator"/>
-    <addaction name="actionPosition_Size_Calculator"/>
-    <addaction name="actionRisk_Reward_Calculator"/>
-    <addaction name="actionSwap_Calculator"/>
-    <addaction name="actionCurrency_Converter"/>
-    <addaction name="actionFibonacci_Calculator"/>
-    <addaction name="actionVolatility_Calculator"/>
     <addaction name="actionBreak_Even_Calculator"/>
     <addaction name="actionCompound_Interest_Calculator"/>
+    <addaction name="actionCurrency_Converter"/>
+    <addaction name="actionFibonacci_Calculator"/>
+    <addaction name="actionLot_Size_Calculator"/>
+    <addaction name="actionMargin_calculator"/>
+    <addaction name="actionPip_calculator"/>
+    <addaction name="actionPosition_Size_Calculator"/>
+    <addaction name="actionProfit_and_Loss_Calculator"/>
     <addaction name="actionRisk_Management_Calculator"/>
+    <addaction name="actionRisk_Reward_Calculator"/>
+    <addaction name="actionSwap_Calculator"/>
+    <addaction name="actionVolatility_Calculator"/>
    </widget>
    <widget class="QMenu" name="menuLanguages">
     <property name="title">
@@ -192,7 +198,7 @@
     <string>Swap Calculator</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+W</string>
+    <string>Ctrl+S</string>
    </property>
   </action>
   <action name="actionCurrency_Converter">

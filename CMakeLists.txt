@@ -32,19 +32,20 @@ set(TS_FILES translations/Forex-Calculator_en_GB.ts)
 
 set(PROJECT_UI
     src/mainwindow.ui
-    src/pip_calculator.ui
-    src/margin_calculator.ui
-    src/lot_size_calculator.ui
-    src/profit_and_loss_calculator.ui
-    src/position_size_calculator.ui
-    src/risk_management_calculator.ui
-    src/risk_reward_calculator.ui
-    src/swap_calculator.ui
-    src/currency_converter.ui
-    src/fibonacci_calculator.ui
-    src/volatility_calculator.ui
-    src/break_even_calculator.ui
-    src/compound_interest_calculator.ui
+    src/pipcalculator.ui
+    src/margincalculator.ui
+    src/lotsizecalculator.ui
+    src/profitandlosscalculator.ui
+    src/positionsizecalculator.ui
+    src/riskmanagementcalculator.ui
+    src/riskrewardcalculator.ui
+    src/swapcalculator.ui
+    src/currencyconverter.ui
+    src/fibonaccicalculator.ui
+    src/volatilitycalculator.ui
+    src/breakevencalculator.ui
+    src/compoundinterestcalculator.ui
+    src/about.ui
 )
 
 set(CMAKE_AUTOUIC_SEARCH_PATHS src)
@@ -79,6 +80,10 @@ set(PROJECT_SOURCES
     src/swapcalculator.h
     src/volatilitycalculator.cpp
     src/volatilitycalculator.h
+    src/about.cpp
+    src/about.h
+    utils.cpp
+    utils.h
     ${PROJECT_UI}
 )
 

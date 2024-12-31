@@ -1,10 +1,18 @@
-#ifndef SWAPCALCULATOR_H
-#define SWAPCALCULATOR_H
+#pragma once
 
-class SwapCalculator
-{
+#include <QWidget>
+
+namespace Ui {
+class SwapCalculator;
+}
+
+class SwapCalculator : public QWidget {
+    Q_OBJECT
+
 public:
-    SwapCalculator();
-};
+    explicit SwapCalculator(QWidget *parent = nullptr);
+    ~SwapCalculator();
 
-#endif // SWAPCALCULATOR_H
+private:
+    Ui::SwapCalculator *ui;
+};

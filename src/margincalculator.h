@@ -1,10 +1,18 @@
-#ifndef MARGINCALCULATOR_H
-#define MARGINCALCULATOR_H
+#pragma once
 
-class MarginCalculator
-{
+#include <QWidget>
+
+namespace Ui {
+class MarginCalculator;
+}
+
+class MarginCalculator : public QWidget {
+    Q_OBJECT
+
 public:
-    MarginCalculator();
-};
+    explicit MarginCalculator(QWidget *parent = nullptr);
+    ~MarginCalculator();
 
-#endif // MARGINCALCULATOR_H
+private:
+    Ui::MarginCalculator *ui;
+};

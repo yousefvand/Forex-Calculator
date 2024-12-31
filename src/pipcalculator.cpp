@@ -1,5 +1,5 @@
 #include "pipcalculator.h"
-#include "ui_pip_calculator.h"
+#include "ui_pipcalculator.h"
 #include <QMessageBox>
 
 PipCalculator::PipCalculator(QWidget *parent)
@@ -21,7 +21,7 @@ PipCalculator::~PipCalculator() {
 // Pip Calculation with Error Handling
 void PipCalculator::calculatePipValue() {
     double lotSize = ui->lotSizeInput->text().toDouble();
-    double exchangeRate = ui->exchangeRateInput->text().toDouble();
+    double exchangeRate = ui->exchangeRateInput->text().toDouble(); // TODO: Read exchange rate from online APIs
 
     QString baseCurrency = ui->baseCurrencyCombo->currentText();
     QString quoteCurrency = ui->quoteCurrencyCombo->currentText();

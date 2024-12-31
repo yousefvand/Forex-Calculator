@@ -1,10 +1,18 @@
-#ifndef BREAKEVENCALCULATOR_H
-#define BREAKEVENCALCULATOR_H
+#pragma once
 
-class BreakEvenCalculator
-{
+#include <QWidget>
+
+namespace Ui {
+class BreakEvenCalculator;
+}
+
+class BreakEvenCalculator : public QWidget {
+    Q_OBJECT
+
 public:
-    BreakEvenCalculator();
-};
+    explicit BreakEvenCalculator(QWidget *parent = nullptr);
+    ~BreakEvenCalculator();
 
-#endif // BREAKEVENCALCULATOR_H
+private:
+    Ui::BreakEvenCalculator *ui;
+};
