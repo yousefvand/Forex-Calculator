@@ -19,20 +19,138 @@
      <x>0</x>
      <y>0</y>
      <width>441</width>
-     <height>351</height>
+     <height>401</height>
     </rect>
    </property>
    <widget class="QLabel" name="label">
     <property name="geometry">
      <rect>
-      <x>110</x>
-      <y>150</y>
-      <width>221</width>
-      <height>51</height>
+      <x>16</x>
+      <y>30</y>
+      <width>211</width>
+      <height>21</height>
      </rect>
     </property>
     <property name="text">
-     <string>CompoundInterestCalculator</string>
+     <string>Principal Amount (Initial Investment)</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_2">
+    <property name="geometry">
+     <rect>
+      <x>16</x>
+      <y>86</y>
+      <width>211</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Annual Interest Rate (%)</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_3">
+    <property name="geometry">
+     <rect>
+      <x>16</x>
+      <y>148</y>
+      <width>251</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Number of Times Compounded (Per Year)</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_4">
+    <property name="geometry">
+     <rect>
+      <x>16</x>
+      <y>208</y>
+      <width>211</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Time (Years)</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_5">
+    <property name="geometry">
+     <rect>
+      <x>16</x>
+      <y>328</y>
+      <width>211</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Final Amount</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButtonCalculate">
+    <property name="geometry">
+     <rect>
+      <x>12</x>
+      <y>268</y>
+      <width>371</width>
+      <height>25</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Calculate</string>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="lineEditCompoundFrequency">
+    <property name="geometry">
+     <rect>
+      <x>266</x>
+      <y>147</y>
+      <width>121</width>
+      <height>25</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="lineEditPrincipal">
+    <property name="geometry">
+     <rect>
+      <x>265</x>
+      <y>30</y>
+      <width>121</width>
+      <height>25</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="lineEditInterestRate">
+    <property name="geometry">
+     <rect>
+      <x>264</x>
+      <y>83</y>
+      <width>121</width>
+      <height>25</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="lineEditTimeYears">
+    <property name="geometry">
+     <rect>
+      <x>263</x>
+      <y>207</y>
+      <width>121</width>
+      <height>25</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="lineEditFinalAmount">
+    <property name="geometry">
+     <rect>
+      <x>261</x>
+      <y>327</y>
+      <width>121</width>
+      <height>25</height>
+     </rect>
+    </property>
+    <property name="readOnly">
+     <bool>true</bool>
     </property>
    </widget>
   </widget>
@@ -386,6 +504,14 @@
    </property>
   </action>
  </widget>
+ <tabstops>
+  <tabstop>lineEditPrincipal</tabstop>
+  <tabstop>lineEditInterestRate</tabstop>
+  <tabstop>lineEditCompoundFrequency</tabstop>
+  <tabstop>lineEditTimeYears</tabstop>
+  <tabstop>pushButtonCalculate</tabstop>
+  <tabstop>lineEditFinalAmount</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

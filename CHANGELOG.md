@@ -2,6 +2,11 @@
 
 ============
 
+## 0.0.4
+
+- Implemented:
+- Compound Interest Calculator
+
 ## 0.0.3
 
 - Implemented:
