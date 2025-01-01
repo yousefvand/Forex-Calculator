@@ -2,6 +2,11 @@
 
 ============
 
+## 0.0.5
+
+- Implemented:
+- Currency Converter
+
 ## 0.0.4
 
 - Implemented:
