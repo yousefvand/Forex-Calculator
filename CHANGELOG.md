@@ -2,6 +2,11 @@
 
 ============
 
+## 0.0.6
+
+- Implemented:
+- Fibonacci Calculator
+
 ## 0.0.5
 
 - Implemented:

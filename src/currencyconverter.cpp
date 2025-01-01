@@ -32,6 +32,7 @@ CurrencyConverter::~CurrencyConverter() {
 void CurrencyConverter::convertCurrency() {
     // Get user input
     double amount = ui->lineEditAmount->text().toDouble();
+    // TODO: Get the exchange rate from online APIs
     double exchangeRate = ui->lineEditExchangeRate->text().toDouble();
 
     // Validation

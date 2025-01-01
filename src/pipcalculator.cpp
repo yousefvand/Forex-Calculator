@@ -20,7 +20,7 @@ PipCalculator::~PipCalculator() {
 
 void PipCalculator::calculatePipValue() {
     double lotSize = ui->lotSizeInput->text().toDouble();
-    double exchangeRate = ui->exchangeRateInput->text().toDouble(); // TODO: Read exchange rate from online APIs
+    double exchangeRate = ui->exchangeRateInput->text().toDouble(); // TODO: Get exchange rate from online APIs
 
     QString baseCurrency = ui->baseCurrencyCombo->currentText();
     QString quoteCurrency = ui->quoteCurrencyCombo->currentText();
