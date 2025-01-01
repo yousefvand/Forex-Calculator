@@ -1,7 +1,7 @@
+#include "utils.h"
 #include "about.h"
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-#include "../utils.h"
 #include <QMessageBox>
 #include "breakevencalculator.h"
 #include "compoundinterestcalculator.h"
@@ -55,11 +55,6 @@ MainWindow::MainWindow(QWidget *parent)
     ui->stackedWidget->addWidget(riskRewardCalculator);         // Index 10
     ui->stackedWidget->addWidget(swapCalculator);               // Index 11
     ui->stackedWidget->addWidget(volatilityCalculator);         // Index 12
-
-    // Connect menu actions to switch calculators
-    connect(ui->actionPip_calculator, &QAction::triggered, this, &MainWindow::switchCalculator);
-
-    // TODO: Read from settings which calculator was last used and load it as default in next run
 
     // Create action group for calculator radio buttons
     calculatorGroup = new QActionGroup(this);

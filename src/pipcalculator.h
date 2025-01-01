@@ -16,6 +16,8 @@ public:
 private slots:
     void calculatePipValue();
 
+    void on_quoteCurrencyCombo_activated(int index);
+
 private:
     Ui::PipCalculator *ui;
 };

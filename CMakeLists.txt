@@ -82,8 +82,8 @@ set(PROJECT_SOURCES
     src/volatilitycalculator.h
     src/about.cpp
     src/about.h
-    utils.cpp
-    utils.h
+    src/utils.cpp
+    src/utils.h
     ${PROJECT_UI}
 )
 

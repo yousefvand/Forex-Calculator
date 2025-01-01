@@ -13,6 +13,9 @@ public:
     explicit BreakEvenCalculator(QWidget *parent = nullptr);
     ~BreakEvenCalculator();
 
+private slots:
+    void calculateBreakEven();
+
 private:
     Ui::BreakEvenCalculator *ui;
 };
