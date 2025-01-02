@@ -22,17 +22,127 @@
      <height>411</height>
     </rect>
    </property>
-   <widget class="QLabel" name="label">
+   <widget class="QWidget" name="verticalLayoutWidget">
     <property name="geometry">
      <rect>
-      <x>140</x>
-      <y>180</y>
-      <width>241</width>
-      <height>51</height>
+      <x>20</x>
+      <y>20</y>
+      <width>160</width>
+      <height>241</height>
+     </rect>
+    </property>
+    <layout class="QVBoxLayout" name="verticalLayout">
+     <item>
+      <widget class="QLabel" name="label">
+       <property name="text">
+        <string>Lot Size</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="label_2">
+       <property name="text">
+        <string>Pip Value</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="label_3">
+       <property name="text">
+        <string>Swap Rate (Long)</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="label_4">
+       <property name="text">
+        <string>Swap Rate (Short)</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="label_5">
+       <property name="text">
+        <string>Trade Type</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="label_6">
+       <property name="text">
+        <string>Number of Nights</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </widget>
+   <widget class="QWidget" name="verticalLayoutWidget_2">
+    <property name="geometry">
+     <rect>
+      <x>210</x>
+      <y>20</y>
+      <width>160</width>
+      <height>241</height>
+     </rect>
+    </property>
+    <layout class="QVBoxLayout" name="verticalLayout_2">
+     <item>
+      <widget class="QLineEdit" name="lineEditLotSize"/>
+     </item>
+     <item>
+      <widget class="QLineEdit" name="lineEditPipValue"/>
+     </item>
+     <item>
+      <widget class="QLineEdit" name="lineEditSwapRateLong"/>
+     </item>
+     <item>
+      <widget class="QLineEdit" name="lineEditSwapRateShort"/>
+     </item>
+     <item>
+      <widget class="QComboBox" name="comboBoxTradeType"/>
+     </item>
+     <item>
+      <widget class="QSpinBox" name="spinBoxNights"/>
+     </item>
+    </layout>
+   </widget>
+   <widget class="QLabel" name="label_7">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>327</y>
+      <width>111</width>
+      <height>21</height>
      </rect>
     </property>
     <property name="text">
-     <string>SwapCalculator</string>
+     <string>Swap Fee</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButtonCalculate">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>286</y>
+      <width>351</width>
+      <height>25</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Calculate</string>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="lineEditSwapFee">
+    <property name="geometry">
+     <rect>
+      <x>212</x>
+      <y>324</y>
+      <width>158</width>
+      <height>25</height>
+     </rect>
+    </property>
+    <property name="readOnly">
+     <bool>true</bool>
     </property>
    </widget>
   </widget>
@@ -386,6 +496,16 @@
    </property>
   </action>
  </widget>
+ <tabstops>
+  <tabstop>lineEditLotSize</tabstop>
+  <tabstop>lineEditPipValue</tabstop>
+  <tabstop>lineEditSwapRateLong</tabstop>
+  <tabstop>lineEditSwapRateShort</tabstop>
+  <tabstop>comboBoxTradeType</tabstop>
+  <tabstop>spinBoxNights</tabstop>
+  <tabstop>pushButtonCalculate</tabstop>
+  <tabstop>lineEditSwapFee</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

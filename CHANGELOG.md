@@ -2,6 +2,11 @@
 
 ============
 
+## 0.0.12
+
+- Implemented:
+- Swap Calculator
+
 ## 0.0.11
 
 - Implemented:

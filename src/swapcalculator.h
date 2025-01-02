@@ -13,6 +13,10 @@ public:
     explicit SwapCalculator(QWidget *parent = nullptr);
     ~SwapCalculator();
 
+private slots:
+    void calculateSwap();
+
 private:
     Ui::SwapCalculator *ui;
 };
+
