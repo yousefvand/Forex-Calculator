@@ -2,6 +2,11 @@
 
 ============
 
+## 0.0.13
+
+- Implemented:
+- Volatility Calculator
+
 ## 0.0.12
 
 - Implemented:

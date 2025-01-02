@@ -99,7 +99,7 @@
      </rect>
     </property>
     <property name="text">
-     <string>Risk-Reward Ratio</string>
+     <string>Risk/Reward Ratio</string>
     </property>
    </widget>
    <widget class="QLineEdit" name="lineEditRiskReward">

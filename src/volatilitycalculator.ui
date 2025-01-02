@@ -19,20 +19,110 @@
      <x>0</x>
      <y>0</y>
      <width>481</width>
-     <height>371</height>
+     <height>401</height>
     </rect>
    </property>
-   <widget class="QLabel" name="label">
+   <widget class="QWidget" name="verticalLayoutWidget">
     <property name="geometry">
      <rect>
-      <x>130</x>
-      <y>160</y>
-      <width>221</width>
-      <height>51</height>
+      <x>20</x>
+      <y>20</y>
+      <width>160</width>
+      <height>201</height>
+     </rect>
+    </property>
+    <layout class="QVBoxLayout" name="verticalLayout">
+     <item>
+      <widget class="QLabel" name="label">
+       <property name="text">
+        <string>High Prices</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="label_2">
+       <property name="text">
+        <string>Low Prices</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="label_3">
+       <property name="text">
+        <string>Close Prices</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="label_4">
+       <property name="text">
+        <string>Period (Days)</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </widget>
+   <widget class="QWidget" name="verticalLayoutWidget_2">
+    <property name="geometry">
+     <rect>
+      <x>210</x>
+      <y>20</y>
+      <width>160</width>
+      <height>201</height>
+     </rect>
+    </property>
+    <layout class="QVBoxLayout" name="verticalLayout_2">
+     <item>
+      <widget class="QTextEdit" name="textEditHighPrices"/>
+     </item>
+     <item>
+      <widget class="QTextEdit" name="textEditLowPrices"/>
+     </item>
+     <item>
+      <widget class="QTextEdit" name="textEditClosePrices"/>
+     </item>
+     <item>
+      <widget class="QSpinBox" name="spinBoxPeriod"/>
+     </item>
+    </layout>
+   </widget>
+   <widget class="QLabel" name="label_5">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>302</y>
+      <width>91</width>
+      <height>21</height>
      </rect>
     </property>
     <property name="text">
-     <string>VolatilityCalculator</string>
+     <string>Volatility (Pips)</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButtonCalculate">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>250</y>
+      <width>351</width>
+      <height>25</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Calculate</string>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="lineEditVolatility">
+    <property name="geometry">
+     <rect>
+      <x>210</x>
+      <y>300</y>
+      <width>161</width>
+      <height>25</height>
+     </rect>
+    </property>
+    <property name="readOnly">
+     <bool>true</bool>
     </property>
    </widget>
   </widget>
@@ -386,6 +476,14 @@
    </property>
   </action>
  </widget>
+ <tabstops>
+  <tabstop>textEditHighPrices</tabstop>
+  <tabstop>textEditLowPrices</tabstop>
+  <tabstop>textEditClosePrices</tabstop>
+  <tabstop>spinBoxPeriod</tabstop>
+  <tabstop>pushButtonCalculate</tabstop>
+  <tabstop>lineEditVolatility</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>
