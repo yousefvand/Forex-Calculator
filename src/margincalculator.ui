@@ -497,6 +497,13 @@
    </property>
   </action>
  </widget>
+ <tabstops>
+  <tabstop>lineEditTradeSize</tabstop>
+  <tabstop>comboBoxLeverage</tabstop>
+  <tabstop>lineEditExchangeRate</tabstop>
+  <tabstop>pushButtonCalculate</tabstop>
+  <tabstop>lineEditRequiredMargin</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

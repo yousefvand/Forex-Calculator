@@ -562,6 +562,15 @@
    </property>
   </action>
  </widget>
+ <tabstops>
+  <tabstop>baseCurrencyCombo</tabstop>
+  <tabstop>quoteCurrencyCombo</tabstop>
+  <tabstop>lotSizeInput</tabstop>
+  <tabstop>exchangeRateInput</tabstop>
+  <tabstop>pipSizeCombo</tabstop>
+  <tabstop>calculateButton</tabstop>
+  <tabstop>pipValueResult</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

@@ -2,6 +2,11 @@
 
 ============
 
+## 0.0.9
+
+- Implemented:
+- Position Size Calculator
+
 ## 0.0.8
 
 - Implemented:
