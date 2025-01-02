@@ -13,6 +13,10 @@ public:
     explicit RiskManagementCalculator(QWidget *parent = nullptr);
     ~RiskManagementCalculator();
 
+private slots:
+    void calculateRisk();
+
 private:
     Ui::RiskManagementCalculator *ui;
 };
+

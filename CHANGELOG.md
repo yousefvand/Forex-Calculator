@@ -2,6 +2,11 @@
 
 ============
 
+## 0.0.10
+
+- Implemented:
+- Risk Management Calculator
+
 ## 0.0.9
 
 - Implemented:
