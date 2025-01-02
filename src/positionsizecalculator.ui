@@ -1,0 +1,499 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>PositionSizeCalculator</class>
+ <widget class="QWidget" name="PositionSizeCalculator">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>400</width>
+    <height>400</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Forex Calculator</string>
+  </property>
+  <widget class="QWidget" name="centralwidget" native="true">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>521</width>
+     <height>401</height>
+    </rect>
+   </property>
+   <widget class="QLabel" name="label_5">
+    <property name="geometry">
+     <rect>
+      <x>18</x>
+      <y>310</y>
+      <width>141</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Position Size (Lots)</string>
+    </property>
+   </widget>
+   <widget class="QWidget" name="verticalLayoutWidget">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>10</y>
+      <width>171</width>
+      <height>221</height>
+     </rect>
+    </property>
+    <layout class="QVBoxLayout" name="verticalLayout">
+     <item>
+      <widget class="QLabel" name="label">
+       <property name="text">
+        <string>Account Size (Balance)</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="label_2">
+       <property name="text">
+        <string>Risk Percentage (%)</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="label_3">
+       <property name="text">
+        <string>Stop Loss (pips)</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="label_4">
+       <property name="text">
+        <string>Pip Value</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </widget>
+   <widget class="QWidget" name="verticalLayoutWidget_2">
+    <property name="geometry">
+     <rect>
+      <x>210</x>
+      <y>10</y>
+      <width>171</width>
+      <height>221</height>
+     </rect>
+    </property>
+    <layout class="QVBoxLayout" name="verticalLayout_2">
+     <item>
+      <widget class="QLineEdit" name="lineEditAccountSize"/>
+     </item>
+     <item>
+      <widget class="QDoubleSpinBox" name="doubleSpinBoxRisk">
+       <property name="minimum">
+        <double>0.010000000000000</double>
+       </property>
+       <property name="maximum">
+        <double>100.000000000000000</double>
+       </property>
+       <property name="singleStep">
+        <double>0.010000000000000</double>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLineEdit" name="lineEditStopLoss"/>
+     </item>
+     <item>
+      <widget class="QLineEdit" name="lineEditPipValue"/>
+     </item>
+    </layout>
+   </widget>
+   <widget class="QPushButton" name="pushButtonCalculate">
+    <property name="geometry">
+     <rect>
+      <x>17</x>
+      <y>260</y>
+      <width>361</width>
+      <height>25</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Calculate</string>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="lineEditPositionSize">
+    <property name="geometry">
+     <rect>
+      <x>208</x>
+      <y>312</y>
+      <width>169</width>
+      <height>25</height>
+     </rect>
+    </property>
+    <property name="readOnly">
+     <bool>true</bool>
+    </property>
+   </widget>
+  </widget>
+  <widget class="QStatusBar" name="statusbar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>3</width>
+     <height>22</height>
+    </rect>
+   </property>
+  </widget>
+  <action name="aboutQt">
+   <property name="text">
+    <string>About Qt</string>
+   </property>
+  </action>
+  <action name="aboutForexCalculator">
+   <property name="text">
+    <string>About Forex Calculator</string>
+   </property>
+  </action>
+  <action name="actionPip_calculator">
+   <property name="text">
+    <string>Pip Calculator</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+P</string>
+   </property>
+  </action>
+  <action name="actionMargin_calculator">
+   <property name="text">
+    <string>Margin Calculator</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+M</string>
+   </property>
+  </action>
+  <action name="actionLot_Size_Calculator">
+   <property name="text">
+    <string>Lot Size Calculator</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+L</string>
+   </property>
+  </action>
+  <action name="actionProfit_and_Loss_Calculator">
+   <property name="text">
+    <string>Profit and Loss Calculator</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+T</string>
+   </property>
+  </action>
+  <action name="actionPosition_Size_Calculator">
+   <property name="text">
+    <string>Position Size Calculator</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+O</string>
+   </property>
+  </action>
+  <action name="actionRisk_Reward_Calculator">
+   <property name="text">
+    <string>Risk/Reward Calculator</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+R</string>
+   </property>
+  </action>
+  <action name="actionSwap_Calculator">
+   <property name="text">
+    <string>Swap Calculator</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+W</string>
+   </property>
+  </action>
+  <action name="actionCurrency_Converter">
+   <property name="text">
+    <string>Currency Converter</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Y</string>
+   </property>
+  </action>
+  <action name="actionFibonacci_Calculator">
+   <property name="text">
+    <string>Fibonacci Calculator</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+F</string>
+   </property>
+  </action>
+  <action name="actionVolatility_Calculator">
+   <property name="text">
+    <string>Volatility Calculator</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+V</string>
+   </property>
+  </action>
+  <action name="actionBreak_Even_Calculator">
+   <property name="text">
+    <string>Break-Even Calculator</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+B</string>
+   </property>
+  </action>
+  <action name="actionCompound_Interest_Calculator">
+   <property name="text">
+    <string>Compound Interest Calculator</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+U</string>
+   </property>
+  </action>
+  <action name="actionEnglish">
+   <property name="text">
+    <string>English</string>
+   </property>
+  </action>
+  <action name="actionSpanish">
+   <property name="text">
+    <string>Spanish</string>
+   </property>
+  </action>
+  <action name="actionChinese_2">
+   <property name="text">
+    <string>Chinese</string>
+   </property>
+  </action>
+  <action name="actionArabic">
+   <property name="text">
+    <string>Arabic</string>
+   </property>
+  </action>
+  <action name="actionRussian">
+   <property name="text">
+    <string>Russian</string>
+   </property>
+  </action>
+  <action name="actionPortuguese">
+   <property name="text">
+    <string>Portuguese</string>
+   </property>
+  </action>
+  <action name="actionGerman">
+   <property name="text">
+    <string>German</string>
+   </property>
+  </action>
+  <action name="actionJapanese">
+   <property name="text">
+    <string>Japanese</string>
+   </property>
+  </action>
+  <action name="actionHindi">
+   <property name="text">
+    <string>Hindi</string>
+   </property>
+  </action>
+  <action name="actionBengali">
+   <property name="text">
+    <string>Bengali</string>
+   </property>
+  </action>
+  <action name="actionPunjabi">
+   <property name="text">
+    <string>Punjabi</string>
+   </property>
+  </action>
+  <action name="actionUrdu">
+   <property name="text">
+    <string>Urdu</string>
+   </property>
+  </action>
+  <action name="actionVietnamese">
+   <property name="text">
+    <string>Vietnamese</string>
+   </property>
+  </action>
+  <action name="actionIndonesian_Bahasa_Indonesia">
+   <property name="text">
+    <string>Indonesian (Bahasa Indonesia)</string>
+   </property>
+  </action>
+  <action name="actionTagalog_Filipino">
+   <property name="text">
+    <string>Tagalog (Filipino)</string>
+   </property>
+  </action>
+  <action name="actionKorean">
+   <property name="text">
+    <string>Korean</string>
+   </property>
+  </action>
+  <action name="actionTamil">
+   <property name="text">
+    <string>Tamil</string>
+   </property>
+  </action>
+  <action name="actionThai">
+   <property name="text">
+    <string>Thai</string>
+   </property>
+  </action>
+  <action name="actionBurmese">
+   <property name="text">
+    <string>Burmese</string>
+   </property>
+  </action>
+  <action name="actionKhmer">
+   <property name="text">
+    <string>Khmer</string>
+   </property>
+  </action>
+  <action name="actionNepali">
+   <property name="text">
+    <string>Nepali</string>
+   </property>
+  </action>
+  <action name="actionHindi_2">
+   <property name="text">
+    <string>Hindi</string>
+   </property>
+  </action>
+  <action name="actionBengali_2">
+   <property name="text">
+    <string>Bengali</string>
+   </property>
+  </action>
+  <action name="actionJapanese_2">
+   <property name="text">
+    <string>Japanese</string>
+   </property>
+  </action>
+  <action name="actionKorean_2">
+   <property name="text">
+    <string>Korean</string>
+   </property>
+  </action>
+  <action name="actionVietnamese_2">
+   <property name="text">
+    <string>Vietnamese</string>
+   </property>
+  </action>
+  <action name="actionThai_2">
+   <property name="text">
+    <string>Thai</string>
+   </property>
+  </action>
+  <action name="actionFrench_2">
+   <property name="text">
+    <string>French</string>
+   </property>
+  </action>
+  <action name="actionGerman_2">
+   <property name="text">
+    <string>German</string>
+   </property>
+  </action>
+  <action name="actionRussian_2">
+   <property name="text">
+    <string>Russian</string>
+   </property>
+  </action>
+  <action name="actionPortuguese_2">
+   <property name="text">
+    <string>Portuguese</string>
+   </property>
+  </action>
+  <action name="actionItalian">
+   <property name="text">
+    <string>Italian</string>
+   </property>
+  </action>
+  <action name="actionPersian_Farsi">
+   <property name="text">
+    <string>Persian (Farsi)</string>
+   </property>
+  </action>
+  <action name="actionTurkish">
+   <property name="text">
+    <string>Turkish</string>
+   </property>
+  </action>
+  <action name="actionHebrew">
+   <property name="text">
+    <string>Hebrew</string>
+   </property>
+  </action>
+  <action name="actionPashto">
+   <property name="text">
+    <string>Pashto</string>
+   </property>
+  </action>
+  <action name="actionSwahili">
+   <property name="text">
+    <string>Swahili</string>
+   </property>
+  </action>
+  <action name="actionAmharic">
+   <property name="text">
+    <string>Amharic</string>
+   </property>
+  </action>
+  <action name="actionHausa">
+   <property name="text">
+    <string>Hausa</string>
+   </property>
+  </action>
+  <action name="actionYoruba">
+   <property name="text">
+    <string>Yoruba</string>
+   </property>
+  </action>
+  <action name="actionZulu">
+   <property name="text">
+    <string>Zulu</string>
+   </property>
+  </action>
+  <action name="actionHaitian_Creole">
+   <property name="text">
+    <string>Haitian Creole</string>
+   </property>
+  </action>
+  <action name="actionQuechua">
+   <property name="text">
+    <string>Quechua</string>
+   </property>
+  </action>
+  <action name="actionGuarani">
+   <property name="text">
+    <string>Guarani</string>
+   </property>
+  </action>
+  <action name="actionNahuatl">
+   <property name="text">
+    <string>Nahuatl</string>
+   </property>
+  </action>
+  <action name="actionRisk_Management_Calculator">
+   <property name="text">
+    <string>Risk Management Calculator</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+M</string>
+   </property>
+  </action>
+ </widget>
+ <tabstops>
+  <tabstop>lineEditAccountSize</tabstop>
+  <tabstop>doubleSpinBoxRisk</tabstop>
+  <tabstop>lineEditStopLoss</tabstop>
+  <tabstop>lineEditPipValue</tabstop>
+  <tabstop>pushButtonCalculate</tabstop>
+  <tabstop>lineEditPositionSize</tabstop>
+ </tabstops>
+ <resources/>
+ <connections/>
+</ui>

@@ -1,0 +1,158 @@
+name: Build and Release
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: write  # Allow creating releases and uploading artifacts
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        include:
+          - os: ubuntu-latest
+            artifact_extension: tar.gz
+          - os: macos-latest
+            artifact_extension: zip
+          - os: windows-latest
+            artifact_extension: zip
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    # ---------------------------
+    # Ubuntu Section
+    # ---------------------------
+    - name: Install dependencies (Ubuntu)
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y ninja-build \
+            qt6-base-dev qt6-tools-dev qt6-tools-dev-tools \
+            qt6-l10n-tools libgl1-mesa-dev libglu1-mesa-dev rsync
+    - name: Configure CMake (Ubuntu)
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        cmake -B build -DCMAKE_BUILD_TYPE=Release -G "Ninja" -S .
+    - name: Build Forex-Calculator (Ubuntu)
+      if: matrix.os == 'ubuntu-latest'
+      run: cmake --build build --config Release
+    - name: Package Forex-Calculator (Ubuntu)
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        mkdir -p artifacts
+        tar -czvf artifacts/Forex-Calculator_ubuntu.tar.gz -C build .
+    - name: Upload Ubuntu Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: Forex-Calculator_ubuntu
+        path: artifacts/Forex-Calculator_ubuntu.tar.gz
+
+    # ---------------------------
+    # macOS Section
+    # ---------------------------
+    - name: Install dependencies (macOS)
+      if: matrix.os == 'macos-latest'
+      run: |
+        brew install ninja qt
+    - name: Configure CMake (macOS)
+      if: matrix.os == 'macos-latest'
+      run: |
+        cmake -B build -DCMAKE_BUILD_TYPE=Release -G "Ninja" -S .
+    - name: Build Forex-Calculator (macOS)
+      if: matrix.os == 'macos-latest'
+      run: cmake --build build --config Release
+    - name: Package Forex-Calculator (macOS)
+      if: matrix.os == 'macos-latest'
+      run: |
+        mkdir -p artifacts
+        zip -r artifacts/Forex-Calculator_macos.zip build
+    - name: Upload macOS Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: Forex-Calculator_macos
+        path: artifacts/Forex-Calculator_macos.zip
+
+    # ---------------------------
+    # Windows Section (Fallback for Chocolatey Failures)
+    # ---------------------------
+    - name: Install dependencies (Windows)
+      if: matrix.os == 'windows-latest'
+      run: |
+        choco install ninja -y || curl -Lo ninja.zip https://github.com/ninja-build/ninja/releases/download/v1.12.0/ninja-win.zip && tar -xf ninja.zip && move ninja.exe C:\Windows\
+        choco install cmake --installargs 'ADD_CMAKE_TO_PATH=System' -y || curl -Lo cmake.zip https://github.com/Kitware/CMake/releases/download/v3.27.0/cmake-3.27.0-windows-x86_64.zip && tar -xf cmake.zip && move cmake-3.27.0-windows-x86_64\bin\cmake.exe C:\Windows\
+        choco install mingw -y || curl -Lo mingw.exe https://sourceforge.net/projects/mingw/files/Installer/mingw-get-setup.exe && mingw.exe
+      shell: cmd
+    - name: Install Qt (Windows)
+      uses: jurplel/install-qt-action@v4
+      with:
+        version: '6.5.3'
+        host: 'windows'
+        target: 'desktop'
+        arch: 'win64_mingw'
+    - name: Configure CMake (Windows)
+      if: matrix.os == 'windows-latest'
+      run: |
+        cmake -B build -DCMAKE_BUILD_TYPE=Release -G Ninja -DCMAKE_PREFIX_PATH=D:\a\Forex-Calculator\Qt\6.5.3\mingw_64 -S .
+      shell: cmd
+    - name: Build Forex-Calculator (Windows)
+      if: matrix.os == 'windows-latest'
+      run: cmake --build build --config Release
+      shell: cmd
+    - name: Package Forex-Calculator (Windows)
+      if: matrix.os == 'windows-latest'
+      run: |
+        mkdir artifacts
+        Compress-Archive -Path "build/*" -DestinationPath "artifacts/Forex-Calculator_windows.zip"
+      shell: pwsh
+    - name: Upload Windows Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: Forex-Calculator_windows
+        path: artifacts/Forex-Calculator_windows.zip
+
+  # ---------------------------
+  # Release Job (After Build)
+  # ---------------------------
+  release:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Download Artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: artifacts
+
+    - name: Generate Tag Name
+      id: tag_name
+      run: echo "RELEASE_TAG=release-$(date +%Y%m%d%H%M%S)" >> $GITHUB_ENV
+
+    - name: Create GitHub Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ env.RELEASE_TAG }}
+        release_name: Forex-Calculator Release
+        draft: false
+        prerelease: false
+
+    - name: Upload Artifacts to Release
+      run: |
+        for file in $(find artifacts -type f); do
+          gh release upload ${{ env.RELEASE_TAG }} "$file"
+        done
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
