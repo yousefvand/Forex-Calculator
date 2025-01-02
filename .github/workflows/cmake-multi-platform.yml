@@ -82,14 +82,14 @@ jobs:
         path: artifacts/Forex-Calculator_macos.zip
 
     # ---------------------------
-    # Windows Section
+    # Windows Section (Fallback for Chocolatey Failures)
     # ---------------------------
     - name: Install dependencies (Windows)
       if: matrix.os == 'windows-latest'
       run: |
-        choco install ninja -y
-        choco install cmake --installargs 'ADD_CMAKE_TO_PATH=System' -y
-        choco install mingw -y
+        choco install ninja -y || curl -Lo ninja.zip https://github.com/ninja-build/ninja/releases/download/v1.12.0/ninja-win.zip && tar -xf ninja.zip && move ninja.exe C:\Windows\
+        choco install cmake --installargs 'ADD_CMAKE_TO_PATH=System' -y || curl -Lo cmake.zip https://github.com/Kitware/CMake/releases/download/v3.27.0/cmake-3.27.0-windows-x86_64.zip && tar -xf cmake.zip && move cmake-3.27.0-windows-x86_64\bin\cmake.exe C:\Windows\
+        choco install mingw -y || curl -Lo mingw.exe https://sourceforge.net/projects/mingw/files/Installer/mingw-get-setup.exe && mingw.exe
       shell: cmd
     - name: Install Qt (Windows)
       uses: jurplel/install-qt-action@v4
