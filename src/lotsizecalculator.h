@@ -13,6 +13,10 @@ public:
     explicit LotSizeCalculator(QWidget *parent = nullptr);
     ~LotSizeCalculator();
 
+private slots:
+    void calculateLotSize();
+
 private:
     Ui::LotSizeCalculator *ui;
 };
+

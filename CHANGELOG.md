@@ -2,6 +2,11 @@
 
 ============
 
+## 0.0.7
+
+- Implemented:
+- Lot Size Calculator
+
 ## 0.0.6
 
 - Implemented:
