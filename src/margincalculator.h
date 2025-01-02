@@ -13,6 +13,10 @@ public:
     explicit MarginCalculator(QWidget *parent = nullptr);
     ~MarginCalculator();
 
+private slots:
+    void calculateMargin();  // Slot to handle margin calculation
+
 private:
     Ui::MarginCalculator *ui;
 };
+

@@ -2,6 +2,11 @@
 
 ============
 
+## 0.0.8
+
+- Implemented:
+- Margin Calculator, Pip Calculator
+
 ## 0.0.7
 
 - Implemented:
