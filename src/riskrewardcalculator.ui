@@ -19,20 +19,100 @@
      <x>0</x>
      <y>0</y>
      <width>501</width>
-     <height>371</height>
+     <height>401</height>
     </rect>
    </property>
-   <widget class="QLabel" name="label">
+   <widget class="QWidget" name="verticalLayoutWidget">
     <property name="geometry">
      <rect>
-      <x>130</x>
-      <y>160</y>
-      <width>241</width>
-      <height>51</height>
+      <x>20</x>
+      <y>20</y>
+      <width>160</width>
+      <height>211</height>
+     </rect>
+    </property>
+    <layout class="QVBoxLayout" name="verticalLayout">
+     <item>
+      <widget class="QLabel" name="label">
+       <property name="text">
+        <string>Entry Price</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="label_2">
+       <property name="text">
+        <string>Stop Loss Price</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="label_3">
+       <property name="text">
+        <string>Target Price</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </widget>
+   <widget class="QWidget" name="verticalLayoutWidget_2">
+    <property name="geometry">
+     <rect>
+      <x>210</x>
+      <y>20</y>
+      <width>160</width>
+      <height>211</height>
+     </rect>
+    </property>
+    <layout class="QVBoxLayout" name="verticalLayout_2">
+     <item>
+      <widget class="QLineEdit" name="lineEditEntryPrice"/>
+     </item>
+     <item>
+      <widget class="QLineEdit" name="lineEditStopLoss"/>
+     </item>
+     <item>
+      <widget class="QLineEdit" name="lineEditTargetPrice"/>
+     </item>
+    </layout>
+   </widget>
+   <widget class="QPushButton" name="pushButtonCalculate">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>260</y>
+      <width>351</width>
+      <height>25</height>
      </rect>
     </property>
     <property name="text">
-     <string>RiskRewardCalculator</string>
+     <string>Calculate</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_4">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>310</y>
+      <width>111</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Risk-Reward Ratio</string>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="lineEditRiskReward">
+    <property name="geometry">
+     <rect>
+      <x>210</x>
+      <y>307</y>
+      <width>158</width>
+      <height>25</height>
+     </rect>
+    </property>
+    <property name="readOnly">
+     <bool>true</bool>
     </property>
    </widget>
   </widget>
@@ -386,6 +466,13 @@
    </property>
   </action>
  </widget>
+ <tabstops>
+  <tabstop>lineEditEntryPrice</tabstop>
+  <tabstop>lineEditStopLoss</tabstop>
+  <tabstop>lineEditTargetPrice</tabstop>
+  <tabstop>pushButtonCalculate</tabstop>
+  <tabstop>lineEditRiskReward</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

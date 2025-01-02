@@ -2,6 +2,11 @@
 
 ============
 
+## 0.0.11
+
+- Implemented:
+- Risk Reward Calculator
+
 ## 0.0.10
 
 - Implemented:

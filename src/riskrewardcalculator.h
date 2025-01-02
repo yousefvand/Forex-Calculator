@@ -13,6 +13,9 @@ public:
     explicit RiskRewardCalculator(QWidget *parent = nullptr);
     ~RiskRewardCalculator();
 
+private slots:
+    void calculateRiskReward();  // Slot to handle calculation
+
 private:
     Ui::RiskRewardCalculator *ui;
 };
