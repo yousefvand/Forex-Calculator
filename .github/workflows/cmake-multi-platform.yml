@@ -130,10 +130,11 @@ jobs:
     - name: Configure CMake (Windows)
       if: matrix.os == 'windows-latest'
       run: |
-        cmake -B build -DCMAKE_BUILD_TYPE=Release \
-          -G Ninja \
-          -DCMAKE_PREFIX_PATH=D:\a\Forex-Calculator\Qt\6.5.3\mingw_64 \
-          -DBUILD_SHARED_LIBS=OFF \
+        cmake -B build ^
+          -DCMAKE_BUILD_TYPE=Release ^
+          -G Ninja ^
+          -DCMAKE_PREFIX_PATH=D:\a\Forex-Calculator\Qt\6.5.3\mingw_64 ^
+          -DBUILD_SHARED_LIBS=OFF ^
           -S .
       shell: cmd
 
