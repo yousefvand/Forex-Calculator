@@ -35,7 +35,8 @@ jobs:
       if: matrix.os == 'ubuntu-latest'
       run: |
         sudo apt update
-        sudo apt install -y ninja-build build-essential libgl1-mesa-dev libglu1-mesa-dev rsync
+        sudo apt install -y ninja-build build-essential libgl1-mesa-dev libglu1-mesa-dev rsync \
+        clang-13 llvm-13 libclang-13-dev
 
     - name: Build Qt Static (Ubuntu)
       if: matrix.os == 'ubuntu-latest'
@@ -46,7 +47,7 @@ jobs:
         ./init-repository
         mkdir build-static
         cd build-static
-        ../configure -release -static -prefix ${{ github.workspace }}/qt-static -opensource -confirm-license -nomake examples -nomake tests
+        ../configure -release -static -prefix ${{ github.workspace }}/qt-static -opensource -confirm-license -nomake examples -nomake tests -skip qtwebengine
         make -j$(nproc)
         make install
 
