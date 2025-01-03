@@ -29,22 +29,30 @@ void BreakEvenCalculator::calculateBreakEven() {
     double accountBalance = ui->lineEditAccountBalance->text().toDouble();
 
     // Validate required fields
-    if (entryPrice == 0 || lotSize == 0) {
-        QMessageBox::warning(this, "Input Error", "Entry Price and Lot Size cannot be zero.");
+    if (entryPrice == 0 || lotSize == 0 || accountBalance == 0 || riskPercent == 0) {
+        QMessageBox::warning(this, "Input Error", "Entry Price, Lot Size, Account Balance, and Risk Percent cannot be zero.");
         return;
     }
 
     // Calculate total cost
     double totalCost = commission + (spread / 10.0) + swap;
 
+    // Calculate the maximum risk amount based on account balance and risk percent
+    double maxRiskAmount = (accountBalance * riskPercent) / 100.0;
+
     // Calculate break-even price
     double breakEvenPrice = entryPrice + (totalCost / lotSize);
 
+    // Calculate risk per trade (entry - stop loss) and adjust for risk percentage
+    double riskPerTrade = entryPrice - stopLoss;
+    double allowedLotSize = maxRiskAmount / riskPerTrade;
+
     // Calculate risk-reward ratio
-    double riskRewardRatio = (takeProfit - entryPrice) / (entryPrice - stopLoss);
+    double riskRewardRatio = (takeProfit - entryPrice) / riskPerTrade;
 
     // Update output fields
     ui->lineEditBreakEvenPrice->setText(QString::number(breakEvenPrice, 'f', 2));
     ui->lineEditTotalCost->setText(QString::number(totalCost, 'f', 2));
     ui->lineEditRiskRewardRatio->setText(QString::number(riskRewardRatio, 'f', 2));
+    ui->lineEditAllowedLotSize->setText(QString::number(allowedLotSize, 'f', 2));
 }

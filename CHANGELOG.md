@@ -2,6 +2,12 @@
 
 ============
 
+## 0.0.14
+
+- Implemented:
+- Removed Multi-language support
+- Fixed Break Even Calculator
+
 ## 0.0.13
 
 - Implemented:

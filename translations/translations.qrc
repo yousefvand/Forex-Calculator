@@ -1,0 +1,32 @@
+<!DOCTYPE RCC><RCC version="1.0">
+<qresource prefix="/translations">
+    <file alias="Forex-Calculator_ht.qm">Forex-Calculator_ht.qm</file>
+    <file alias="Forex-Calculator_th.qm">Forex-Calculator_th.qm</file>
+    <file alias="Forex-Calculator_vi.qm">Forex-Calculator_vi.qm</file>
+    <file alias="Forex-Calculator_zh_TW.qm">Forex-Calculator_zh_TW.qm</file>
+    <file alias="Forex-Calculator_sw.qm">Forex-Calculator_sw.qm</file>
+    <file alias="Forex-Calculator_fa.qm">Forex-Calculator_fa.qm</file>
+    <file alias="Forex-Calculator_am.qm">Forex-Calculator_am.qm</file>
+    <file alias="Forex-Calculator_pt.qm">Forex-Calculator_pt.qm</file>
+    <file alias="Forex-Calculator_ha.qm">Forex-Calculator_ha.qm</file>
+    <file alias="Forex-Calculator_nah.qm">Forex-Calculator_nah.qm</file>
+    <file alias="Forex-Calculator_it.qm">Forex-Calculator_it.qm</file>
+    <file alias="Forex-Calculator_ja.qm">Forex-Calculator_ja.qm</file>
+    <file alias="Forex-Calculator_zh.qm">Forex-Calculator_zh.qm</file>
+    <file alias="Forex-Calculator_ps.qm">Forex-Calculator_ps.qm</file>
+    <file alias="Forex-Calculator_de.qm">Forex-Calculator_de.qm</file>
+    <file alias="Forex-Calculator_gn.qm">Forex-Calculator_gn.qm</file>
+    <file alias="Forex-Calculator_en.qm">Forex-Calculator_en.qm</file>
+    <file alias="Forex-Calculator_ru.qm">Forex-Calculator_ru.qm</file>
+    <file alias="Forex-Calculator_fr.qm">Forex-Calculator_fr.qm</file>
+    <file alias="Forex-Calculator_he.qm">Forex-Calculator_he.qm</file>
+    <file alias="Forex-Calculator_es.qm">Forex-Calculator_es.qm</file>
+    <file alias="Forex-Calculator_bn.qm">Forex-Calculator_bn.qm</file>
+    <file alias="Forex-Calculator_tr.qm">Forex-Calculator_tr.qm</file>
+    <file alias="Forex-Calculator_hi.qm">Forex-Calculator_hi.qm</file>
+    <file alias="Forex-Calculator_ko.qm">Forex-Calculator_ko.qm</file>
+    <file alias="Forex-Calculator_zu.qm">Forex-Calculator_zu.qm</file>
+    <file alias="Forex-Calculator_yo.qm">Forex-Calculator_yo.qm</file>
+    <file alias="Forex-Calculator_ar.qm">Forex-Calculator_ar.qm</file>
+</qresource>
+</RCC>
