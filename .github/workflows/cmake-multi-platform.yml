@@ -30,6 +30,7 @@ jobs:
 
     # ---------------------------
     # Linux Section (Static Qt)
+    # Minor Comment to Trigger Workflow
     # ---------------------------
     - name: Install Dependencies (Linux)
       if: matrix.os == 'Linux'
@@ -77,7 +78,6 @@ jobs:
       with:
         name: Forex-Calculator_linux
         path: artifacts/Forex-Calculator_linux.tar.gz
-
 
     # ---------------------------
     # macOS Section (Static Qt)
