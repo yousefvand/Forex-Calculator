@@ -95,6 +95,17 @@ jobs:
         choco install qt6-default qt6-tools
     shell: cmd
 
+    # Locate and add windeployqt to PATH
+    - name: Locate and Add windeployqt to PATH
+      run: |
+        $windeployqt = Get-ChildItem -Recurse -Filter windeployqt.exe "C:\Qt\" | Select-Object -First 1
+        if (-Not $windeployqt) {
+          Write-Error "windeployqt.exe not found. Installation failed."
+          exit 1
+        }
+        echo $windeployqt.Directory.FullName | Out-File -Append -Encoding utf8 $env:GITHUB_PATH
+    shell: pwsh
+
     # Configure the CMake build
     - name: Configure CMake (Windows)
       run: |
@@ -112,13 +123,7 @@ jobs:
     # Deploy Qt DLLs using windeployqt
     - name: Deploy Qt DLLs (Windows)
       run: |
-        set WINDEPLOYQT_PATH="C:\Program Files\Qt\Tools\QtCreator\bin\windeployqt.exe"
-        if exist %WINDEPLOYQT_PATH% (
-          %WINDEPLOYQT_PATH% build\Forex-Calculator.exe
-        ) else (
-          echo "windeployqt not found, failing build."
-          exit 1
-        )
+        windeployqt.exe build\Forex-Calculator.exe
     shell: cmd
 
     # Package the resulting build into a zip file
