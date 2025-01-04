@@ -13,17 +13,14 @@ jobs:
   # ----------- Linux Build (AppImage) -----------
   build-linux:
     runs-on: ubuntu-latest
-    container:
-      image: ubuntu:22.04
     steps:
     - name: Checkout Code
       uses: actions/checkout@v4
 
     - name: Install Dependencies (Linux)
       run: |
-        set -e
-        apt update
-        apt install -y ninja-build build-essential libgl1-mesa-dev libglu1-mesa-dev rsync \
+        sudo apt update
+        sudo apt install -y ninja-build build-essential libgl1-mesa-dev libglu1-mesa-dev rsync \
         qt6-base-dev qt6-tools-dev qt6-tools-dev-tools qt6-l10n-tools cmake wget libfuse2 || \
         echo "libfuse2 already installed"
 
@@ -40,23 +37,21 @@ jobs:
 
     - name: Package AppImage (Linux)
       run: |
-        set -e
         mkdir -p artifacts
         if linuxdeployqt build/Forex-Calculator -appimage; then
           echo "AppImage created successfully."
-          mv Forex-Calculator*.AppImage artifacts/Forex-Calculator_linux.AppImage
+          mv Forex-Calculator*.AppImage Forex-Calculator_Linux.AppImage
+          zip -j artifacts/Forex-Calculator_Linux_App_Image.zip Forex-Calculator_Linux.AppImage
         else
-          echo "FUSE failed, extracting AppImage manually."
-          /usr/local/bin/linuxdeployqt --appimage-extract || exit 1
-          tar -czvf artifacts/Forex-Calculator_linux_extracted.tar.gz squashfs-root/
-          rm -rf squashfs-root appimagetool AppRun || echo "Cleanup complete"
+          echo "AppImage creation failed!"
+          exit 1
         fi
 
     - name: Upload Artifact (Linux)
       uses: actions/upload-artifact@v4
       with:
-        name: Forex-Calculator_linux
-        path: artifacts/*
+        name: Forex-Calculator_Linux_App_Image
+        path: artifacts/Forex-Calculator_Linux_App_Image.zip
 
   # ----------- macOS Build -----------
   build-macos:
@@ -76,13 +71,13 @@ jobs:
     - name: Package Forex-Calculator (macOS)
       run: |
         mkdir -p artifacts
-        zip -r artifacts/Forex-Calculator_macos.zip build
+        zip -r artifacts/Forex-Calculator_macOS.zip build
 
     - name: Upload Artifact (macOS)
       uses: actions/upload-artifact@v4
       with:
-        name: Forex-Calculator_macos
-        path: artifacts/Forex-Calculator_macos.zip
+        name: Forex-Calculator_macOS
+        path: artifacts/Forex-Calculator_macOS.zip
 
   # ----------- Windows Build (Static) -----------
   build-windows:
@@ -109,7 +104,7 @@ jobs:
       run: |
         cmake -B build -DCMAKE_BUILD_TYPE=Release ^
           -G Ninja ^
-          -DCMAKE_EXE_LINKER_FLAGS="-static -static-libgcc -static-libstdc++" ^
+          -DCMAKE_EXE_LINKER_FLAGS="-static -static-libgcc -static-libstdc++ -static-libstdc++fs" ^
           -S .
       shell: cmd
 
@@ -120,15 +115,16 @@ jobs:
     - name: Package Single Executable (Windows)
       run: |
         mkdir -p artifacts
-        cp build/Forex-Calculator.exe artifacts/Forex-Calculator_windows_static.exe
-        upx --best artifacts/Forex-Calculator_windows_static.exe
+        cp build/Forex-Calculator.exe Forex-Calculator_Windows.exe
+        upx --best Forex-Calculator_Windows.exe
+        zip artifacts/Forex-Calculator_Windows.zip Forex-Calculator_Windows.exe
       shell: pwsh
 
     - name: Upload Artifact (Windows)
       uses: actions/upload-artifact@v4
       with:
-        name: Forex-Calculator_windows_static
-        path: artifacts/Forex-Calculator_windows_static.exe
+        name: Forex-Calculator_Windows
+        path: artifacts/Forex-Calculator_Windows.zip
 
   # ----------- Release Job -----------
   release:
