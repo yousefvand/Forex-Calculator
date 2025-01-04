@@ -62,7 +62,7 @@ jobs:
 
   # ----------- macOS Build -----------
   build-macos:
-    runs-on: macOS-latest
+    runs-on: macos-latest
     steps:
     - name: Checkout Code
       uses: actions/checkout@v4
@@ -112,7 +112,6 @@ jobs:
         cmake -B build -DCMAKE_BUILD_TYPE=Release ^
           -G Ninja ^
           -DCMAKE_EXE_LINKER_FLAGS="-static -static-libgcc -static-libstdc++" ^
-          -DCMAKE_PREFIX_PATH="D:\a\Forex-Calculator\Qt\6.5.3\mingw_64" ^
           -S .
       shell: cmd
 
@@ -120,18 +119,28 @@ jobs:
       run: cmake --build build --config Release
       shell: cmd
 
-    - name: Bundle Qt Dependencies (Windows)
+    - name: Deploy Qt Dependencies (Windows)
       run: |
-        D:\a\Forex-Calculator\Qt\6.5.3\mingw_64\bin\windeployqt.exe --release --no-compiler-runtime ^
-          --no-network --no-patchqt build/Forex-Calculator.exe
+        D:\a\Forex-Calculator\Qt\6.5.3\mingw_64\bin\windeployqt.exe --release ^
+          --no-compiler-runtime ^
+          --no-network ^
+          --dir build/platforms ^
+          build/Forex-Calculator.exe
+      shell: cmd
+
+    - name: Copy Platform Plugin (Windows)
+      run: |
+        mkdir -p build/platforms
+        cp D:\a\Forex-Calculator\Qt\6.5.3\mingw_64\plugins\platforms\qwindows.dll build/platforms/
       shell: cmd
 
     - name: Package Single Executable (Windows)
       run: |
         mkdir -p artifacts
         cp build/Forex-Calculator.exe Forex-Calculator_Windows.exe
+        cp -r build/platforms .
         upx --best Forex-Calculator_Windows.exe
-        Compress-Archive -Path Forex-Calculator_Windows.exe -DestinationPath artifacts/Forex-Calculator_Windows.zip
+        Compress-Archive -Path Forex-Calculator_Windows.exe, platforms -DestinationPath artifacts/Forex-Calculator_Windows.zip
       shell: pwsh
 
     - name: Upload Artifact (Windows)
