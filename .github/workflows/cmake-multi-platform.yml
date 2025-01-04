@@ -96,13 +96,13 @@ jobs:
     - name: Checkout Code
       uses: actions/checkout@v4
 
-    - name: Cache CMake Build
+    - name: Cache Qt Installation
       uses: actions/cache@v3
       with:
-        path: build
-        key: cmake-build-${{ runner.os }}-${{ github.ref }}
+        path: C:\Qt
+        key: qt-install-${{ runner.os }}-${{ github.ref }}
         restore-keys: |
-          cmake-build-${{ runner.os }}-
+          qt-install-${{ runner.os }}-
 
     - name: Install Dependencies (Windows)
       run: |
@@ -110,6 +110,7 @@ jobs:
       shell: cmd
 
     - name: Install Qt (Windows)
+      if: steps.cache.outputs.cache-hit != 'true'
       uses: jurplel/install-qt-action@v4
       with:
         version: '6.5.3'
@@ -130,10 +131,18 @@ jobs:
       run: cmake --build build --config Release
       shell: cmd
 
-    # Use windeployqt to bundle Qt DLLs
+    # Locate and run windeployqt dynamically
     - name: Deploy Qt DLLs (Windows)
       run: |
-        & "C:\Qt\6.5.3\mingw_64\bin\windeployqt.exe" --dir build build\Forex-Calculator.exe
+        $windeployqt = Get-Command -ErrorAction SilentlyContinue -Name "windeployqt.exe"
+        if (-not $windeployqt) {
+          $windeployqt = Get-ChildItem -Recurse -Filter windeployqt.exe "C:\Qt\" | Select-Object -First 1
+          if (-not $windeployqt) {
+            Write-Error "windeployqt.exe not found. Check Qt installation."
+            exit 1
+          }
+        }
+        & "$($windeployqt.FullName)" --dir build build\Forex-Calculator.exe
       shell: pwsh
 
     - name: Package Forex-Calculator (Windows)
