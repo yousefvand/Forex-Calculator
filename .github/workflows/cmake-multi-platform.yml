@@ -7,7 +7,7 @@ on:
     branches: [main]
 
 permissions:
-  contents: write  # Permission granted
+  contents: write
 
 jobs:
   build:
@@ -15,23 +15,23 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [Linux, macOS, Windows]
+        os: [ubuntu-latest, macOS, Windows]
 
     steps:
     - name: Checkout Code
       uses: actions/checkout@v4
 
     # ---------------------------
-    # Linux Section (Basic Qt Install)
+    # Ubuntu Section (Basic Qt Install)
     # ---------------------------
-    - name: Install Dependencies (Linux)
-      if: matrix.os == 'Linux'
+    - name: Install Dependencies (Ubuntu)
+      if: matrix.os == 'ubuntu-latest'
       run: |
         sudo apt update
         sudo apt install -y ninja-build build-essential libgl1-mesa-dev libglu1-mesa-dev rsync qt6-base-dev qt6-tools-dev
 
-    - name: Verify Qt Installation (Linux)
-      if: matrix.os == 'Linux'
+    - name: Verify Qt Installation (Ubuntu)
+      if: matrix.os == 'ubuntu-latest'
       run: |
         ls /usr/lib/qt6/bin/ | grep windeployqt || echo "Qt tools not found"
 
