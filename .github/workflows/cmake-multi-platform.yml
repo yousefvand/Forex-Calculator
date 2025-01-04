@@ -88,18 +88,27 @@ jobs:
         choco install ninja cmake mingw
     shell: cmd
 
-    # Install Qt fully via Chocolatey
+    # Install Qt using install-qt-action
     - name: Install Qt (Windows)
+      uses: jurplel/install-qt-action@v4
+      with:
+        version: '6.5.3'
+        host: 'windows'
+        target: 'desktop'
+        arch: 'win64_mingw'
+
+    # Install qt6-tools to get windeployqt
+    - name: Install Qt Tools (Windows)
       run: |
-        choco install qt6-default qt6-tools
-        refreshenv
+        choco install qt6-tools
     shell: cmd
 
-    # Add Qt to PATH
-    - name: Add Qt to PATH (Windows)
+    # Locate and manually add windeployqt to PATH
+    - name: Add windeployqt to PATH
       run: |
         echo "C:\Program Files\Qt\Tools\QtCreator\bin" | Out-File -Append -Encoding utf8 $env:GITHUB_PATH
         echo "C:\Qt\Tools\QtCreator\bin" | Out-File -Append -Encoding utf8 $env:GITHUB_PATH
+        refreshenv
     shell: pwsh
 
     # Configure the CMake build
@@ -119,7 +128,7 @@ jobs:
     # Deploy Qt DLLs using windeployqt
     - name: Deploy Qt DLLs (Windows)
       run: |
-        windeployqt.exe build\Forex-Calculator.exe
+        C:\Qt\Tools\QtCreator\bin\windeployqt.exe build\Forex-Calculator.exe
     shell: cmd
 
     # Package the resulting build into a zip file
