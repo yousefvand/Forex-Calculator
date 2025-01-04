@@ -10,9 +10,11 @@ permissions:
   contents: write
 
 jobs:
-  # ----------- Linux Build (AppImage without Container) -----------
+  # ----------- Linux Build (AppImage with Container) -----------
   build-linux:
-    runs-on: ubuntu-20.04  # Directly use Ubuntu 20.04 to ensure glibc 2.31
+    runs-on: ubuntu-latest
+    container:
+      image: ubuntu:20.04  # Use Ubuntu 20.04 to ensure glibc 2.31 compatibility
     steps:
     - name: Checkout Code
       uses: actions/checkout@v4
@@ -20,8 +22,8 @@ jobs:
     - name: Install Dependencies (Linux)
       run: |
         export DEBIAN_FRONTEND=noninteractive
-        sudo apt update
-        sudo apt install -y wget ninja-build build-essential libgl1-mesa-dev libglu1-mesa-dev rsync \
+        apt update
+        apt install -y wget ninja-build build-essential libgl1-mesa-dev libglu1-mesa-dev rsync \
         qt6-base-dev qt6-tools-dev qt6-tools-dev-tools qt6-l10n-tools cmake libfuse2 || \
         echo "libfuse2 already installed"
 
@@ -29,7 +31,7 @@ jobs:
       run: |
         wget https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage
         chmod +x linuxdeployqt-continuous-x86_64.AppImage
-        sudo mv linuxdeployqt-continuous-x86_64.AppImage /usr/local/bin/linuxdeployqt
+        mv linuxdeployqt-continuous-x86_64.AppImage /usr/local/bin/linuxdeployqt
 
     - name: Configure and Build (Linux)
       run: |
