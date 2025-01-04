@@ -76,18 +76,20 @@ jobs:
         name: Forex-Calculator_macos
         path: artifacts/Forex-Calculator_macos.zip
 
-  # ----------- Windows Build (Dynamic Qt Deployment) -----------
+  # ----------- Windows Build (Fix for windeployqt) -----------
   build-windows:
     runs-on: windows-latest
     steps:
     - name: Checkout Code
       uses: actions/checkout@v4
 
+    # Install dependencies like MinGW and CMake
     - name: Install Dependencies (Windows)
       run: |
         choco install ninja cmake mingw
     shell: cmd
 
+    # Install Qt using install-qt-action
     - name: Install Qt (Windows)
       uses: jurplel/install-qt-action@v4
       with:
@@ -95,8 +97,14 @@ jobs:
         host: 'windows'
         target: 'desktop'
         arch: 'win64_mingw'
-        static: false  # Dynamic build (default)
 
+    # Install qt6-tools to get windeployqt
+    - name: Install Qt Tools (Windows)
+      run: |
+        choco install qt6-tools
+    shell: cmd
+
+    # Configure the CMake build
     - name: Configure CMake (Windows)
       run: |
         cmake -B build -DCMAKE_BUILD_TYPE=Release ^
@@ -105,21 +113,26 @@ jobs:
           -S .
     shell: cmd
 
+    # Build the project
     - name: Build Forex-Calculator (Windows)
       run: cmake --build build --config Release
     shell: cmd
 
+    # Dynamically locate windeployqt and deploy Qt DLLs
     - name: Deploy Qt DLLs (Windows)
       run: |
-        C:/Qt/6.5.3/mingw_64/bin/windeployqt.exe build/Forex-Calculator.exe
+        FOR /R "C:\Qt" %%F IN (windeployqt.exe) DO SET WINDEPLOYQT=%%F
+        %WINDEPLOYQT% build/Forex-Calculator.exe
     shell: cmd
 
+    # Package the resulting build into a zip file
     - name: Package Forex-Calculator (Windows)
       run: |
         mkdir artifacts
         Compress-Archive -Path "build/*" -DestinationPath "artifacts/Forex-Calculator_windows.zip"
     shell: pwsh
 
+    # Upload the built artifact
     - name: Upload Artifact (Windows)
       uses: actions/upload-artifact@v4
       with:
@@ -129,7 +142,7 @@ jobs:
   # ----------- Release Job -----------
   release:
     runs-on: ubuntu-latest
-    needs: [build-linux, build-macos, build-windows]  # Wait for all builds to complete
+    needs: [build-linux, build-macos, build-windows]
     steps:
     - name: Checkout Code
       uses: actions/checkout@v4
