@@ -31,7 +31,7 @@ jobs:
       run: |
         curl -Lo linuxdeployqt https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage
         chmod +x linuxdeployqt
-        mv linuxdeployqt /usr/local/bin/linuxdeployqt  # No sudo needed in container
+        mv linuxdeployqt /usr/local/bin/linuxdeployqt
 
     - name: Configure and Build (Linux)
       run: |
@@ -56,7 +56,7 @@ jobs:
         name: Forex-Calculator_Linux_App_Image
         path: artifacts/Forex-Calculator_Linux_App_Image.zip
 
-  # ----------- macOS Build ------------
+  # ----------- macOS Build -----------
   build-macos:
     runs-on: macos-latest
     steps:
