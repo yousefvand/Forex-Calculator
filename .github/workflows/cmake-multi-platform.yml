@@ -30,11 +30,13 @@ jobs:
         sudo apt update
         sudo apt install -y ninja-build build-essential libgl1-mesa-dev libglu1-mesa-dev rsync \
         qt6-base-dev qt6-tools-dev qt6-tools-dev-tools qt6-l10n-tools
+    
     - name: Configure CMake (Linux)
       run: |
         cmake -B build -DCMAKE_BUILD_TYPE=Release \
           -G "Ninja" \
           -S .
+    
     - name: Build Forex-Calculator (Linux)
       run: cmake --build build --config Release
 
@@ -42,6 +44,7 @@ jobs:
       run: |
         mkdir -p artifacts
         tar -czvf artifacts/Forex-Calculator_linux.tar.gz -C build .
+
     - name: Upload Artifact (Linux)
       uses: actions/upload-artifact@v4
       with:
@@ -71,6 +74,7 @@ jobs:
         cmake -B build -DCMAKE_BUILD_TYPE=Release \
           -G "Ninja" \
           -S .
+    
     - name: Build Forex-Calculator (macOS)
       run: cmake --build build --config Release
 
@@ -78,6 +82,7 @@ jobs:
       run: |
         mkdir -p artifacts
         zip -r artifacts/Forex-Calculator_macos.zip build
+
     - name: Upload Artifact (macOS)
       uses: actions/upload-artifact@v4
       with:
@@ -125,6 +130,12 @@ jobs:
       run: cmake --build build --config Release
       shell: cmd
 
+    # Use windeployqt to bundle Qt DLLs
+    - name: Deploy Qt DLLs (Windows)
+      run: |
+        & "C:\Qt\6.5.3\mingw_64\bin\windeployqt.exe" --dir build build\Forex-Calculator.exe
+      shell: pwsh
+
     - name: Package Forex-Calculator (Windows)
       run: |
         mkdir artifacts
@@ -156,15 +167,17 @@ jobs:
     - name: List Downloaded Files
       run: ls -R artifacts
 
-    - name: Generate Tag Name
+    - name: Generate Tag Name from Git
       id: tag_name
-      run: echo "RELEASE_TAG=release-$(date +%Y%m%d%H%M%S)" >> $GITHUB_ENV
+      run: |
+        TAG=$(git describe --tags --abbrev=0 || echo "v0.0.1")
+        echo "RELEASE_TAG=$TAG" >> $GITHUB_ENV
 
     - name: Create GitHub Release
       uses: softprops/action-gh-release@v1
       with:
         tag_name: ${{ env.RELEASE_TAG }}
-        release_name: Forex-Calculator Release
+        release_name: Forex-Calculator ${{ env.RELEASE_TAG }}
         draft: false
         prerelease: false
       env:
