@@ -56,7 +56,7 @@ jobs:
         name: Forex-Calculator_Linux_App_Image
         path: artifacts/Forex-Calculator_Linux_App_Image.zip
 
-  # ----------- macOS Build -----------
+  # ----------- macOS Build ------------
   build-macos:
     runs-on: macos-latest
     steps:
