@@ -25,10 +25,31 @@ jobs:
         restore-keys: |
           cmake-build-${{ runner.os }}-
 
+    - name: Fix Containerd Conflict
+      run: |
+        sudo apt-get remove -y containerd docker.io || true
+        sudo apt-get autoremove -y
+        sudo apt-get update
+
     - name: Install Docker
       run: |
-        sudo apt update
-        sudo apt install -y docker.io
+        sudo apt-get install -y \
+          ca-certificates \
+          curl \
+          gnupg \
+          lsb-release
+          
+        # Add Docker’s official GPG key
+        sudo mkdir -p /etc/apt/keyrings
+        curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+        
+        # Set up the Docker repository
+        echo \
+          "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
+          $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+        
+        sudo apt-get update
+        sudo apt-get install -y docker-ce docker-ce-cli containerd.io
 
     - name: Run Linux Build in Docker (Ubuntu 20.04)
       run: |
@@ -38,29 +59,17 @@ jobs:
           ubuntu:20.04 \
           /bin/bash -c "
             apt update &&
-            apt install -y wget curl ninja-build build-essential libgl1-mesa-dev libglu1-mesa-dev rsync &&
-            
-            # Download Qt Installer
-            wget https://download.qt.io/official_releases/online_installers/qt-unified-linux-x64-online.run &&
-            chmod +x qt-unified-linux-x64-online.run &&
-            
-            # Install dependencies for installer
-            apt install -y libxcb-xinerama0 libxkbcommon-x11-0 libglib2.0-0 &&
-            
-            # Install Qt non-interactively
-            ./qt-unified-linux-x64-online.run --script ./ci-qt-installer.qs &&
-            
-            export PATH=$HOME/Qt/6.5.3/gcc_64/bin:$PATH &&
-            
-            # Build Forex-Calculator
-            cmake -B build -DCMAKE_BUILD_TYPE=Release -G 'Ninja' -S . &&
-            cmake --build build --config Release &&
-            
-            # Package the AppImage
+            apt install -y software-properties-common &&
+            add-apt-repository -y ppa:kubuntu-ppa/backports &&
+            apt update &&
+            apt install -y ninja-build build-essential libgl1-mesa-dev libglu1-mesa-dev rsync \
+            qt6-base-dev qt6-tools-dev qt6-tools-dev-tools qt6-l10n-tools wget &&
             wget https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage &&
             chmod +x linuxdeployqt-continuous-x86_64.AppImage &&
-            ./linuxdeployqt-continuous-x86_64.AppImage build/Forex-Calculator -appimage &&
-            
+            mv linuxdeployqt-continuous-x86_64.AppImage /usr/local/bin/linuxdeployqt &&
+            cmake -B build -DCMAKE_BUILD_TYPE=Release -G 'Ninja' -S . &&
+            cmake --build build --config Release &&
+            linuxdeployqt build/Forex-Calculator -appimage &&
             mkdir -p artifacts &&
             mv Forex-Calculator*.AppImage artifacts/Forex-Calculator_linux.AppImage
           "
