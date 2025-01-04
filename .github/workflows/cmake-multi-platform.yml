@@ -18,10 +18,10 @@ jobs:
     - name: Checkout Code
       uses: actions/checkout@v4
 
-    - name: Install Qt6 and Dependencies (Linux)
+    - name: Install CMake and Dependencies (Linux)
       run: |
         apt update
-        apt install -y ninja-build build-essential libgl1-mesa-dev libglu1-mesa-dev rsync curl wget qt6-base-dev qt6-tools-dev qt6-tools-dev-tools qt6-l10n-tools
+        apt install -y ninja-build build-essential libgl1-mesa-dev libglu1-mesa-dev rsync curl wget cmake qt6-base-dev qt6-tools-dev qt6-tools-dev-tools qt6-l10n-tools
 
     - name: Download linuxdeployqt
       run: |
@@ -61,7 +61,7 @@ jobs:
       uses: actions/checkout@v4
 
     - name: Install Dependencies (macOS)
-      run: brew install ninja qt
+      run: brew install ninja qt cmake
 
     - name: Configure CMake (macOS)
       run: cmake -B build -DCMAKE_BUILD_TYPE=Release -G "Ninja" -S .
