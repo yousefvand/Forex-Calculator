@@ -21,7 +21,8 @@ jobs:
       - name: Install Dependencies
         run: |
           sudo apt update
-          sudo apt install -y ninja-build build-essential qt6-base-dev qt6-tools-dev-tools cmake
+          sudo apt install -y ninja-build build-essential qt6-base-dev qt6-tools-dev-tools \
+                              cmake libgl1-mesa-dev libglu1-mesa-dev mesa-common-dev libxkbcommon-dev
           curl -Lo linuxdeployqt https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage
           chmod +x linuxdeployqt
           sudo mv linuxdeployqt /usr/local/bin/linuxdeployqt
@@ -114,8 +115,8 @@ jobs:
       # Package the Windows executable with dependencies using windeployqt
       - name: Package (Windows)
         run: |
-          mkdir -p package
           if (Test-Path "build/Forex-Calculator.exe") {
+            mkdir package
             cp build/Forex-Calculator.exe package/
             D:\a\Forex-Calculator\Qt\6.5.3\mingw_64\bin\windeployqt.exe ^
               package/Forex-Calculator.exe
