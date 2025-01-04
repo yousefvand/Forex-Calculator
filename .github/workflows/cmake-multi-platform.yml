@@ -10,7 +10,7 @@ permissions:
   contents: write
 
 jobs:
-  # ----------- Linux Build -----------
+  # ----------- Linux Build (AppImage) -----------
   build-linux:
     runs-on: ubuntu-latest
     container:
@@ -19,13 +19,13 @@ jobs:
     - name: Checkout Code
       uses: actions/checkout@v4
 
-    - name: Install Dependencies
+    - name: Install Dependencies (Linux)
       run: |
         set -e
         apt update
         apt install -y ninja-build build-essential libgl1-mesa-dev libglu1-mesa-dev rsync \
         qt6-base-dev qt6-tools-dev qt6-tools-dev-tools qt6-l10n-tools cmake wget libfuse2 || \
-        apt install -y libfuse2 || echo "libfuse2 already installed"
+        echo "libfuse2 already installed"
 
     - name: Download and Setup linuxdeployqt
       run: |
@@ -33,12 +33,12 @@ jobs:
         chmod +x linuxdeployqt-continuous-x86_64.AppImage
         mv linuxdeployqt-continuous-x86_64.AppImage /usr/local/bin/linuxdeployqt
 
-    - name: Configure and Build
+    - name: Configure and Build (Linux)
       run: |
         cmake -B build -DCMAKE_BUILD_TYPE=Release -G 'Ninja' -S .
         cmake --build build --config Release
 
-    - name: Package AppImage
+    - name: Package AppImage (Linux)
       run: |
         set -e
         mkdir -p artifacts
@@ -84,7 +84,7 @@ jobs:
         name: Forex-Calculator_macos
         path: artifacts/Forex-Calculator_macos.zip
 
-  # ----------- Windows Build -----------
+  # ----------- Windows Build (Static) -----------
   build-windows:
     runs-on: windows-latest
     steps:
@@ -93,18 +93,19 @@ jobs:
 
     - name: Install Dependencies (Windows)
       run: |
-        choco install ninja cmake mingw
+        choco install ninja cmake mingw upx
       shell: cmd
 
-    - name: Install Qt (Windows)
+    - name: Install Static Qt (Windows)
       uses: jurplel/install-qt-action@v4
       with:
         version: '6.5.3'
         host: 'windows'
         target: 'desktop'
         arch: 'win64_mingw'
+        static: true  # Install static Qt
 
-    - name: Configure CMake (Windows)
+    - name: Configure CMake (Windows - Static)
       run: |
         cmake -B build -DCMAKE_BUILD_TYPE=Release ^
           -G Ninja ^
@@ -112,35 +113,22 @@ jobs:
           -S .
       shell: cmd
 
-    - name: Build Forex-Calculator (Windows)
+    - name: Build Forex-Calculator (Windows - Static)
       run: cmake --build build --config Release
       shell: cmd
 
-    - name: Deploy Qt DLLs (Windows)
+    - name: Package Single Executable (Windows)
       run: |
-        $windeployqt = Get-ChildItem -Recurse -Filter windeployqt.exe "D:\a\" | Select-Object -First 1
-        if ($windeployqt) {
-          Write-Host "windeployqt found at: $($windeployqt.FullName)"
-          & "$($windeployqt.FullName)" --dir build build\Forex-Calculator.exe
-        } else {
-          Write-Error "windeployqt.exe not found. Qt installation or PATH may be incorrect."
-          exit 1
-        }
-      shell: pwsh
-
-    - name: Package Forex-Calculator (Windows)
-      run: |
-        if (-not (Test-Path -Path "artifacts")) {
-          mkdir artifacts
-        }
-        Compress-Archive -Path "build/*" -DestinationPath "artifacts/Forex-Calculator_windows.zip"
+        mkdir -p artifacts
+        cp build/Forex-Calculator.exe artifacts/Forex-Calculator_windows_static.exe
+        upx --best artifacts/Forex-Calculator_windows_static.exe
       shell: pwsh
 
     - name: Upload Artifact (Windows)
       uses: actions/upload-artifact@v4
       with:
-        name: Forex-Calculator_windows
-        path: artifacts/Forex-Calculator_windows.zip
+        name: Forex-Calculator_windows_static
+        path: artifacts/Forex-Calculator_windows_static.exe
 
   # ----------- Release Job -----------
   release:
