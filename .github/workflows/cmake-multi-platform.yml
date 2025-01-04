@@ -19,16 +19,19 @@ jobs:
     - name: Checkout Code
       uses: actions/checkout@v4
 
-    - name: Install Essential Tools
+    - name: Install Essential Tools and curl
       run: |
         export DEBIAN_FRONTEND=noninteractive
         apt update
         apt install -y curl wget ninja-build build-essential libgl1-mesa-dev libglu1-mesa-dev rsync \
         qt6-base-dev qt6-tools-dev qt6-tools-dev-tools qt6-l10n-tools cmake libfuse2 || \
-        echo "libfuse2 already installed"
+        echo "Some packages already installed"
 
     - name: Download and Setup linuxdeployqt
       run: |
+        if ! command -v curl &> /dev/null; then
+          apt install -y curl
+        fi
         curl -Lo linuxdeployqt https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage
         chmod +x linuxdeployqt
         sudo mv linuxdeployqt /usr/local/bin/linuxdeployqt
