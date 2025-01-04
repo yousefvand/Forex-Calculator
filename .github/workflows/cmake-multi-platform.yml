@@ -76,14 +76,13 @@ jobs:
         name: Forex-Calculator_macos
         path: artifacts/Forex-Calculator_macos.zip
 
-  # ----------- Windows Build (Fix for windeployqt) -----------
+  # ----------- Windows Build (Fixed windeployqt) -----------
   build-windows:
     runs-on: windows-latest
     steps:
     - name: Checkout Code
       uses: actions/checkout@v4
 
-    # Install dependencies like MinGW and CMake
     - name: Install Dependencies (Windows)
       run: |
         choco install ninja cmake mingw
@@ -121,11 +120,13 @@ jobs:
     # Locate and deploy Qt DLLs using windeployqt
     - name: Deploy Qt DLLs (Windows)
       run: |
-        if exist "C:\Qt\6.5.3\mingw_64\bin\windeployqt.exe" (
-          C:\Qt\6.5.3\mingw_64\bin\windeployqt.exe build/Forex-Calculator.exe
+        set "WINDEPLOYQT="
+        for /f "delims=" %%i in ('where windeployqt 2^>nul') do set "WINDEPLOYQT=%%i"
+        if "%WINDEPLOYQT%"=="" (
+          echo "windeployqt not found. Installing..."
+          exit 1
         ) else (
-          echo "windeployqt not found in Qt directory, searching system..."
-          for /f "delims=" %%i in ('where windeployqt') do %%i build/Forex-Calculator.exe
+          %WINDEPLOYQT% build/Forex-Calculator.exe
         )
     shell: cmd
 
