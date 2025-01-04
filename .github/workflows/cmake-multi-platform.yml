@@ -118,11 +118,15 @@ jobs:
       run: cmake --build build --config Release
     shell: cmd
 
-    # Dynamically locate windeployqt and deploy Qt DLLs
+    # Locate and deploy Qt DLLs using windeployqt
     - name: Deploy Qt DLLs (Windows)
       run: |
-        FOR /R "C:\Qt" %%F IN (windeployqt.exe) DO SET WINDEPLOYQT=%%F
-        %WINDEPLOYQT% build/Forex-Calculator.exe
+        if exist "C:\Qt\6.5.3\mingw_64\bin\windeployqt.exe" (
+          C:\Qt\6.5.3\mingw_64\bin\windeployqt.exe build/Forex-Calculator.exe
+        ) else (
+          echo "windeployqt not found in Qt directory, searching system..."
+          for /f "delims=" %%i in ('where windeployqt') do %%i build/Forex-Calculator.exe
+        )
     shell: cmd
 
     # Package the resulting build into a zip file
