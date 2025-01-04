@@ -23,22 +23,23 @@ jobs:
         apt update
         apt install -y software-properties-common curl wget build-essential ninja-build \
                         libgl1-mesa-dev libglu1-mesa-dev rsync cmake fuse libfuse2 \
-                        libxkbcommon-x11-0  # Fix for missing Qt dependency
-
+                        libxkbcommon-x11-0 libfontconfig1 libdbus-1-3 patchelf
     - name: Download and Install Qt
       run: |
-        curl -Lo qt-installer.run https://download.qt.io/official_releases/online_installers/qt-unified-linux-x64-online.run
-        chmod +x qt-installer.run
-        ./qt-installer.run --script qt_installer_script.qs || echo "Qt installer failed"
-
+        if [ ! -d "/opt/Qt/6.5.3/gcc_64" ]; then
+          curl -Lo qt-installer.run https://download.qt.io/official_releases/online_installers/qt-unified-linux-x64-online.run
+          chmod +x qt-installer.run
+          ./qt-installer.run --script qt_installer_script.qs || echo "Qt installer failed"
+        fi
     - name: Download linuxdeployqt
       run: |
         curl -Lo linuxdeployqt https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage
         chmod +x linuxdeployqt
         mv linuxdeployqt /usr/local/bin/linuxdeployqt
-
     - name: Configure CMake (Linux)
-      run: cmake -B build -DCMAKE_BUILD_TYPE=Release -G "Ninja" -S .
+      run: |
+        cmake -B build -DCMAKE_BUILD_TYPE=Release -G "Ninja" \
+          -DCMAKE_PREFIX_PATH=/opt/Qt/6.5.3/gcc_64 -S .
 
     - name: Build Forex-Calculator (Linux)
       run: cmake --build build --config Release
@@ -48,18 +49,17 @@ jobs:
         mkdir -p artifacts
         if linuxdeployqt build/Forex-Calculator -appimage; then
           echo "AppImage created successfully."
-          mv Forex-Calculator*.AppImage Forex-Calculator_Linux.AppImage
-          zip -j artifacts/Forex-Calculator_Linux_App_Image.zip Forex-Calculator_Linux.AppImage
+          mv Forex-Calculator*.AppImage Forex-Calculator.AppImage
+          zip -j artifacts/Forex-Calculator.App.Image.zip Forex-Calculator.AppImage
         else
           echo "AppImage creation failed!"
           exit 1
         fi
-
     - name: Upload Linux Artifact
       uses: actions/upload-artifact@v4
       with:
         name: Forex-Calculator_Linux
-        path: artifacts/Forex-Calculator_Linux_App_Image.zip
+        path: artifacts/Forex-Calculator.App.Image.zip
 
   # ----------- macOS Build -----------
   build-macos:
@@ -81,7 +81,6 @@ jobs:
       run: |
         mkdir -p artifacts
         zip -r artifacts/Forex-Calculator_macOS.zip build
-
     - name: Upload macOS Artifact
       uses: actions/upload-artifact@v4
       with:
