@@ -130,7 +130,6 @@ jobs:
       run: cmake --build build --config Release
       shell: cmd
 
-    # Improved windeployqt detection and execution
     - name: Deploy Qt DLLs (Windows)
       run: |
         $windeployqt = Get-ChildItem -Recurse -Filter windeployqt.exe "D:\a\" | Select-Object -First 1
@@ -187,5 +186,13 @@ jobs:
         release_name: Forex-Calculator ${{ env.RELEASE_TAG }}
         draft: false
         prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Upload Artifacts to Release
+      run: |
+        for file in $(find artifacts -type f); do
+          gh release upload ${{ env.RELEASE_TAG }} "$file"
+        done
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
