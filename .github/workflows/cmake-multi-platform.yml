@@ -13,22 +13,20 @@ jobs:
   # ----------- Linux Build -----------
   build-linux:
     runs-on: ubuntu-22.04
+    container: ubuntu:20.04
     steps:
     - name: Checkout Code
       uses: actions/checkout@v4
 
     - name: Install Dependencies (Linux)
       run: |
-        sudo apt update
-        sudo apt install -y ninja-build build-essential libgl1-mesa-dev libglu1-mesa-dev \
+        apt update
+        apt install -y ninja-build build-essential libgl1-mesa-dev libglu1-mesa-dev \
                         mesa-common-dev libxkbcommon-dev cmake fuse libfuse2 \
                         qt6-base-dev qt6-tools-dev qt6-tools-dev-tools qt6-l10n-tools patchelf
-        
-    - name: Download linuxdeployqt
-      run: |
         wget -c https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage
         chmod +x linuxdeployqt-continuous-x86_64.AppImage
-        sudo mv linuxdeployqt-continuous-x86_64.AppImage /usr/local/bin/linuxdeployqt
+        mv linuxdeployqt-continuous-x86_64.AppImage /usr/local/bin/linuxdeployqt
 
     - name: Configure CMake (Linux)
       run: |
@@ -91,14 +89,13 @@ jobs:
         choco install ninja cmake mingw
       shell: cmd
 
-    - name: Install Static Qt (Windows)
+    - name: Install Qt (Windows)
       uses: jurplel/install-qt-action@v4
       with:
         version: '6.5.3'
         host: 'windows'
         target: 'desktop'
         arch: 'win64_mingw'
-        static: false
 
     - name: Configure CMake (Windows)
       run: |
@@ -114,16 +111,10 @@ jobs:
 
     - name: Package Forex-Calculator (Windows)
       run: |
-        if (Test-Path "build/Forex-Calculator.exe") {
-          mkdir package
-          cp build/Forex-Calculator.exe package/
-          D:\a\Forex-Calculator\Qt\6.5.3\mingw_64\bin\windeployqt.exe ^
-            package/Forex-Calculator.exe
-          Compress-Archive -Path package -DestinationPath Forex-Calculator_Windows.zip
-        } else {
-          echo "Build failed or executable not found!"
-          exit 1
-        }
+        mkdir package
+        cp build/Forex-Calculator.exe package/
+        D:\a\Forex-Calculator\Qt\6.5.3\mingw_64\bin\windeployqt.exe package/Forex-Calculator.exe
+        Compress-Archive -Path package -DestinationPath Forex-Calculator_Windows.zip
       shell: pwsh
 
     - name: Upload Artifact (Windows)
