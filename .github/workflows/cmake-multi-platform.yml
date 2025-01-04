@@ -124,7 +124,7 @@ jobs:
         mkdir -p artifacts
         cp build/Forex-Calculator.exe Forex-Calculator_Windows.exe
         upx --best Forex-Calculator_Windows.exe
-        zip artifacts/Forex-Calculator_Windows.zip Forex-Calculator_Windows.exe
+        Compress-Archive -Path Forex-Calculator_Windows.exe -DestinationPath artifacts/Forex-Calculator_Windows.zip
       shell: pwsh
 
     - name: Upload Artifact (Windows)
