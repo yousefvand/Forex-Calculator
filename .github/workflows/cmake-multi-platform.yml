@@ -14,12 +14,12 @@ jobs:
   build-linux:
     runs-on: ubuntu-latest
     container:
-      image: ubuntu:20.04  # Use Ubuntu 20.04 to ensure glibc 2.31 compatibility
+      image: ubuntu:20.04  # Ensures compatibility with glibc 2.31
     steps:
     - name: Checkout Code
       uses: actions/checkout@v4
 
-    - name: Install Dependencies (Linux)
+    - name: Install Essential Tools
       run: |
         export DEBIAN_FRONTEND=noninteractive
         apt update
