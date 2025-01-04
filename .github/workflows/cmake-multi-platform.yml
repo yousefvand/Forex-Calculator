@@ -118,22 +118,15 @@ jobs:
         cmake -B build -DCMAKE_BUILD_TYPE=Release ^
           -G Ninja ^
           -DCMAKE_EXE_LINKER_FLAGS="-static -static-libgcc -static-libstdc++" ^
+          -DCMAKE_FIND_LIBRARY_SUFFIXES=.a ^
+          -DCMAKE_IGNORE_PATH="C:/Qt/6.5.3/mingw_64/lib" ^
+          -DCMAKE_PREFIX_PATH="D:/a/Forex-Calculator/Qt/6.5.3/mingw_64" ^
+          -DQT_USE_STATIC_LIBS=ON ^
           -S .
       shell: cmd
 
     - name: Build Forex-Calculator (Windows - Static)
       run: cmake --build build --config Release
-      shell: cmd
-
-    - name: Deploy Qt Plugins (Windows)
-      run: |
-        D:\a\Forex-Calculator\Qt\6.5.3\mingw_64\bin\windeployqt.exe --release ^
-          --no-compiler-runtime ^
-          --no-network ^
-          build/Forex-Calculator.exe
-
-        if not exist build\platforms mkdir build\platforms
-        copy D:\a\Forex-Calculator\Qt\6.5.3\mingw_64\plugins\platforms\qwindows.dll build\platforms\
       shell: cmd
 
     - name: Package Single Executable (Windows)
