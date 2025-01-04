@@ -10,71 +10,170 @@ permissions:
   contents: write
 
 jobs:
-  build:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, macOS, Windows]
-
+  # ----------- Linux Build -----------
+  build-linux:
+    runs-on: ubuntu-latest
     steps:
     - name: Checkout Code
       uses: actions/checkout@v4
 
-    # ---------------------------
-    # Ubuntu Section (Basic Qt Install)
-    # ---------------------------
-    - name: Install Dependencies (Ubuntu)
-      if: matrix.os == 'ubuntu-latest'
+    - name: Cache CMake Build
+      uses: actions/cache@v3
+      with:
+        path: build
+        key: cmake-build-${{ runner.os }}-${{ github.ref }}
+        restore-keys: |
+          cmake-build-${{ runner.os }}-
+
+    - name: Install Dependencies (Linux)
       run: |
         sudo apt update
-        sudo apt install -y ninja-build build-essential libgl1-mesa-dev libglu1-mesa-dev rsync qt6-base-dev qt6-tools-dev
-
-    - name: Verify Qt Installation (Ubuntu)
-      if: matrix.os == 'ubuntu-latest'
+        sudo apt install -y ninja-build build-essential libgl1-mesa-dev libglu1-mesa-dev rsync \
+        qt6-base-dev qt6-tools-dev qt6-tools-dev-tools qt6-l10n-tools
+    - name: Configure CMake (Linux)
       run: |
-        ls /usr/lib/qt6/bin/ | grep windeployqt || echo "Qt tools not found"
+        cmake -B build -DCMAKE_BUILD_TYPE=Release \
+          -G "Ninja" \
+          -S .
+    - name: Build Forex-Calculator (Linux)
+      run: cmake --build build --config Release
 
-    # ---------------------------
-    # macOS Section (Basic Qt Install)
-    # ---------------------------
+    - name: Package Forex-Calculator (Linux)
+      run: |
+        mkdir -p artifacts
+        tar -czvf artifacts/Forex-Calculator_linux.tar.gz -C build .
+    - name: Upload Artifact (Linux)
+      uses: actions/upload-artifact@v4
+      with:
+        name: Forex-Calculator_linux
+        path: artifacts/Forex-Calculator_linux.tar.gz
+
+  # ----------- macOS Build -----------
+  build-macos:
+    runs-on: macos-latest
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Cache CMake Build
+      uses: actions/cache@v3
+      with:
+        path: build
+        key: cmake-build-${{ runner.os }}-${{ github.ref }}
+        restore-keys: |
+          cmake-build-${{ runner.os }}-
+
     - name: Install Dependencies (macOS)
-      if: matrix.os == 'macOS'
       run: brew install ninja qt
 
-    - name: Verify Qt Installation (macOS)
-      if: matrix.os == 'macOS'
+    - name: Configure CMake (macOS)
       run: |
-        ls $(brew --prefix qt)/bin/ | grep windeployqt || echo "Qt tools not found"
+        cmake -B build -DCMAKE_BUILD_TYPE=Release \
+          -G "Ninja" \
+          -S .
+    - name: Build Forex-Calculator (macOS)
+      run: cmake --build build --config Release
 
-    # ---------------------------
-    # Windows Section (Basic Qt Install)
-    # ---------------------------
+    - name: Package Forex-Calculator (macOS)
+      run: |
+        mkdir -p artifacts
+        zip -r artifacts/Forex-Calculator_macos.zip build
+    - name: Upload Artifact (macOS)
+      uses: actions/upload-artifact@v4
+      with:
+        name: Forex-Calculator_macos
+        path: artifacts/Forex-Calculator_macos.zip
+
+  # ----------- Windows Build -----------
+  build-windows:
+    runs-on: windows-latest
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Cache CMake Build
+      uses: actions/cache@v3
+      with:
+        path: build
+        key: cmake-build-${{ runner.os }}-${{ github.ref }}
+        restore-keys: |
+          cmake-build-${{ runner.os }}-
+
     - name: Install Dependencies (Windows)
-      if: matrix.os == 'Windows'
       run: |
         choco install ninja cmake mingw
       shell: cmd
 
     - name: Install Qt (Windows)
-      if: matrix.os == 'Windows'
+      uses: jurplel/install-qt-action@v4
+      with:
+        version: '6.5.3'
+        host: 'windows'
+        target: 'desktop'
+        arch: 'win64_mingw'
+        static: true
+
+    - name: Configure CMake (Windows)
       run: |
-        choco install qt6-default qt6-tools
+        cmake -B build -DCMAKE_BUILD_TYPE=Release ^
+          -G Ninja ^
+          -DCMAKE_EXE_LINKER_FLAGS="-static -static-libgcc -static-libstdc++" ^
+          -S .
       shell: cmd
 
-    - name: Verify Qt Installation (Windows)
-      if: matrix.os == 'Windows'
-      run: |
-        dir "C:\Qt\" /s | findstr /i "windeployqt.exe"
+    - name: Build Forex-Calculator (Windows)
+      run: cmake --build build --config Release
       shell: cmd
 
-    - name: Check for windeployqt Path (Windows)
-      if: matrix.os == 'Windows'
+    - name: Package Forex-Calculator (Windows)
       run: |
-        $windeployqt = Get-ChildItem -Recurse -Filter windeployqt.exe "C:\Qt\" | Select-Object -First 1
-        if (-not $windeployqt) {
-          Write-Error "windeployqt.exe not found. Check Qt installation or PATH."
-          exit 1
+        mkdir artifacts
+        if (Test-Path "C:\MinGW\bin\libstdc++-6.dll") {
+          Copy-Item "C:\MinGW\bin\libstdc++-6.dll" -Destination "build\"
         }
-        echo "windeployqt found at: $($windeployqt.FullName)"
+        Compress-Archive -Path "build/*" -DestinationPath "artifacts/Forex-Calculator_windows.zip"
       shell: pwsh
+
+    - name: Upload Artifact (Windows)
+      uses: actions/upload-artifact@v4
+      with:
+        name: Forex-Calculator_windows
+        path: artifacts/Forex-Calculator_windows.zip
+
+  # ----------- Release Job -----------
+  release:
+    runs-on: ubuntu-latest
+    needs: [build-linux, build-macos, build-windows]
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Download Artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: artifacts
+
+    - name: List Downloaded Files
+      run: ls -R artifacts
+
+    - name: Generate Tag Name
+      id: tag_name
+      run: echo "RELEASE_TAG=release-$(date +%Y%m%d%H%M%S)" >> $GITHUB_ENV
+
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: ${{ env.RELEASE_TAG }}
+        release_name: Forex-Calculator Release
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Upload Artifacts to Release
+      run: |
+        for file in $(find artifacts -type f); do
+          gh release upload ${{ env.RELEASE_TAG }} "$file"
+        done
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
