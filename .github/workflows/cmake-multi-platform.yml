@@ -21,9 +21,11 @@ jobs:
 
     - name: Install Dependencies
       run: |
+        set -e
         apt update
         apt install -y ninja-build build-essential libgl1-mesa-dev libglu1-mesa-dev rsync \
-        qt6-base-dev qt6-tools-dev qt6-tools-dev-tools qt6-l10n-tools cmake wget libfuse2
+        qt6-base-dev qt6-tools-dev qt6-tools-dev-tools qt6-l10n-tools cmake wget libfuse2 || \
+        apt install -y libfuse2 || echo "libfuse2 already installed"
 
     - name: Download and Setup linuxdeployqt
       run: |
@@ -41,12 +43,13 @@ jobs:
         set -e
         mkdir -p artifacts
         if linuxdeployqt build/Forex-Calculator -appimage; then
+          echo "AppImage created successfully."
           mv Forex-Calculator*.AppImage artifacts/Forex-Calculator_linux.AppImage
         else
           echo "FUSE failed, extracting AppImage manually."
-          /usr/local/bin/linuxdeployqt --appimage-extract
+          /usr/local/bin/linuxdeployqt --appimage-extract || exit 1
           tar -czvf artifacts/Forex-Calculator_linux_extracted.tar.gz squashfs-root/
-          rm -rf squashfs-root appimagetool AppRun  # Remove unnecessary files
+          rm -rf squashfs-root appimagetool AppRun || echo "Cleanup complete"
         fi
 
     - name: Upload Artifact (Linux)
@@ -54,7 +57,7 @@ jobs:
       with:
         name: Forex-Calculator_linux
         path: artifacts/*
-  
+
   # ----------- macOS Build -----------
   build-macos:
     runs-on: macos-latest
@@ -143,4 +146,33 @@ jobs:
   release:
     runs-on: ubuntu-latest
     needs: [build-linux, build-macos, build-windows]
-  
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Download Artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: artifacts
+
+    - name: Generate Tag Name
+      id: tag_name
+      run: echo "RELEASE_TAG=release-$(date +%Y%m%d%H%M%S)" >> $GITHUB_ENV
+
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: ${{ env.RELEASE_TAG }}
+        release_name: Forex-Calculator Release
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Upload Artifacts to Release
+      run: |
+        for file in $(find artifacts -type f); do
+          gh release upload ${{ env.RELEASE_TAG }} "$file"
+        done
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
