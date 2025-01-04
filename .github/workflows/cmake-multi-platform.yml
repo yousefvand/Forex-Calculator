@@ -131,18 +131,17 @@ jobs:
       run: cmake --build build --config Release
       shell: cmd
 
-    # Locate and run windeployqt dynamically
+    # Improved windeployqt detection and execution
     - name: Deploy Qt DLLs (Windows)
       run: |
-        $windeployqt = Get-Command -ErrorAction SilentlyContinue -Name "windeployqt.exe"
-        if (-not $windeployqt) {
-          $windeployqt = Get-ChildItem -Recurse -Filter windeployqt.exe "C:\Qt\" | Select-Object -First 1
-          if (-not $windeployqt) {
-            Write-Error "windeployqt.exe not found. Check Qt installation."
-            exit 1
-          }
+        $windeployqt = Get-ChildItem -Recurse -Filter windeployqt.exe "C:\Qt\" | Select-Object -First 1
+        if ($windeployqt) {
+          Write-Host "windeployqt found at: $($windeployqt.FullName)"
+          & "$($windeployqt.FullName)" --dir build build\Forex-Calculator.exe
+        } else {
+          Write-Error "windeployqt.exe not found. Qt installation or PATH may be incorrect."
+          exit 1
         }
-        & "$($windeployqt.FullName)" --dir build build\Forex-Calculator.exe
       shell: pwsh
 
     - name: Package Forex-Calculator (Windows)
@@ -189,13 +188,5 @@ jobs:
         release_name: Forex-Calculator ${{ env.RELEASE_TAG }}
         draft: false
         prerelease: false
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-    - name: Upload Artifacts to Release
-      run: |
-        for file in $(find artifacts -type f); do
-          gh release upload ${{ env.RELEASE_TAG }} "$file"
-        done
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
