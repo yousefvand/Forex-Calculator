@@ -1,4 +1,4 @@
-name: Build and Release Forex Calculator
+name: Build and Release Forex-Calculator
 
 on:
   push:
@@ -10,36 +10,53 @@ permissions:
   contents: write
 
 jobs:
-  # ----------- Linux Build (AppImage) -----------
   build-linux:
-    runs-on: ubuntu-22.04
-    container: ubuntu:20.04
+    runs-on: ubuntu-20.04
     steps:
     - name: Checkout Code
       uses: actions/checkout@v4
 
-    - name: Install Dependencies
-      run: |
-        apt update
-        apt install -y software-properties-common curl wget build-essential ninja-build libgl1-mesa-dev libglu1-mesa-dev rsync cmake fuse libfuse2
+    - name: Cache Dependencies (Qt and linuxdeployqt)
+      uses: actions/cache@v4
+      with:
+        path: |
+          /opt/Qt
+          ~/.cache/linuxdeployqt
+        key: qt-cache-${{ runner.os }}-${{ hashFiles('**/CMakeLists.txt') }}
+        restore-keys: qt-cache-${{ runner.os }}-
 
-    - name: Download and Install Qt
+    - name: Install System Dependencies
       run: |
-        curl -Lo qt-installer.run https://download.qt.io/official_releases/online_installers/qt-unified-linux-x64-online.run
-        chmod +x qt-installer.run
-        ./qt-installer.run --script qt_installer_script.qs
+        sudo apt update
+        sudo apt install -y ninja-build build-essential libgl1-mesa-dev libglu1-mesa-dev rsync \
+                            cmake fuse libfuse2 wget curl zip
 
-    - name: Download linuxdeployqt
+    - name: Install Qt (if not cached)
       run: |
-        curl -Lo linuxdeployqt https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage
-        chmod +x linuxdeployqt
-        mv linuxdeployqt /usr/local/bin/linuxdeployqt
+        if [ ! -d "/opt/Qt/6.5.3/gcc_64" ]; then
+          curl -Lo qt-installer.run https://download.qt.io/official_releases/online_installers/qt-unified-linux-x64-online.run
+          chmod +x qt-installer.run
+          ./qt-installer.run --script qt_installer_script.qs
+        fi
+
+    - name: Download and Cache linuxdeployqt
+      run: |
+        if [ ! -f "~/.cache/linuxdeployqt/linuxdeployqt" ]; then
+          wget https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage
+          chmod +x linuxdeployqt-continuous-x86_64.AppImage
+          mkdir -p ~/.cache/linuxdeployqt
+          mv linuxdeployqt-continuous-x86_64.AppImage ~/.cache/linuxdeployqt/linuxdeployqt
+        fi
+        sudo cp ~/.cache/linuxdeployqt/linuxdeployqt /usr/local/bin/linuxdeployqt
 
     - name: Configure CMake (Linux)
       run: cmake -B build -DCMAKE_BUILD_TYPE=Release -G "Ninja" -S .
 
     - name: Build Forex-Calculator (Linux)
-      run: cmake --build build --config Release
+      run: cmake --build build --parallel $(nproc)
+
+    - name: Strip Binary to Reduce Size
+      run: strip build/Forex-Calculator
 
     - name: Package AppImage (Linux)
       run: |
@@ -47,19 +64,18 @@ jobs:
         if linuxdeployqt build/Forex-Calculator -appimage; then
           echo "AppImage created successfully."
           mv Forex-Calculator*.AppImage Forex-Calculator_Linux.AppImage
-          zip -j artifacts/Forex-Calculator_Linux_App_Image.zip Forex-Calculator_Linux.AppImage
+          zip -j artifacts/Forex-Calculator.App.Image.zip Forex-Calculator_Linux.AppImage
         else
           echo "AppImage creation failed!"
           exit 1
         fi
-
-    - name: Upload Linux Artifact
+    
+    - name: Upload Artifact (Linux)
       uses: actions/upload-artifact@v4
       with:
         name: Forex-Calculator_Linux
-        path: artifacts/Forex-Calculator_Linux_App_Image.zip
+        path: artifacts/Forex-Calculator.App.Image.zip
 
-  # ----------- macOS Build -----------
   build-macos:
     runs-on: macos-latest
     steps:
@@ -67,26 +83,25 @@ jobs:
       uses: actions/checkout@v4
 
     - name: Install Dependencies (macOS)
-      run: brew install ninja qt cmake
+      run: brew install ninja qt
 
     - name: Configure CMake (macOS)
       run: cmake -B build -DCMAKE_BUILD_TYPE=Release -G "Ninja" -S .
 
     - name: Build Forex-Calculator (macOS)
-      run: cmake --build build --config Release
+      run: cmake --build build --config Release --parallel $(sysctl -n hw.ncpu)
 
     - name: Package Forex-Calculator (macOS)
       run: |
         mkdir -p artifacts
         zip -r artifacts/Forex-Calculator_macOS.zip build
 
-    - name: Upload macOS Artifact
+    - name: Upload Artifact (macOS)
       uses: actions/upload-artifact@v4
       with:
         name: Forex-Calculator_macOS
         path: artifacts/Forex-Calculator_macOS.zip
 
-  # ----------- Windows Build (Static) -----------
   build-windows:
     runs-on: windows-latest
     steps:
@@ -98,16 +113,16 @@ jobs:
         choco install ninja cmake mingw upx
       shell: cmd
 
-    - name: Install Static Qt (Windows)
+    - name: Install Qt (Windows)
       uses: jurplel/install-qt-action@v4
       with:
         version: '6.5.3'
         host: 'windows'
         target: 'desktop'
         arch: 'win64_mingw'
-        static: true
+        modules: qtbase qttools
 
-    - name: Configure CMake (Windows - Static)
+    - name: Configure CMake (Windows)
       run: |
         cmake -B build -DCMAKE_BUILD_TYPE=Release ^
           -G Ninja ^
@@ -115,16 +130,16 @@ jobs:
           -S .
       shell: cmd
 
-    - name: Build Forex-Calculator (Windows - Static)
+    - name: Build Forex-Calculator (Windows)
       run: cmake --build build --config Release
       shell: cmd
 
-    - name: Package Single Executable (Windows)
+    - name: Package Executable (Windows)
       run: |
         mkdir -p artifacts
         cp build/Forex-Calculator.exe Forex-Calculator_Windows.exe
         upx --best Forex-Calculator_Windows.exe
-        Compress-Archive -Path Forex-Calculator_Windows.exe -DestinationPath artifacts/Forex-Calculator_Windows.zip
+        powershell Compress-Archive -Path Forex-Calculator_Windows.exe -DestinationPath artifacts/Forex-Calculator_Windows.zip
       shell: pwsh
 
     - name: Upload Artifact (Windows)
@@ -133,7 +148,6 @@ jobs:
         name: Forex-Calculator_Windows
         path: artifacts/Forex-Calculator_Windows.zip
 
-  # ----------- Release Job -----------
   release:
     runs-on: ubuntu-latest
     needs: [build-linux, build-macos, build-windows]
@@ -145,9 +159,6 @@ jobs:
       uses: actions/download-artifact@v4
       with:
         path: artifacts
-
-    - name: List Downloaded Files
-      run: ls -R artifacts
 
     - name: Generate Tag Name
       id: tag_name
