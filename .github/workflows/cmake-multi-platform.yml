@@ -17,7 +17,6 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      # Install required dependencies for Linux build
       - name: Install Dependencies
         run: |
           sudo apt update
@@ -27,13 +26,11 @@ jobs:
           chmod +x linuxdeployqt
           sudo mv linuxdeployqt /usr/local/bin/linuxdeployqt
 
-      # Configure and build the project using CMake and Ninja
       - name: Configure and Build
         run: |
           cmake -B build -DCMAKE_BUILD_TYPE=Release -G "Ninja"
           cmake --build build --config Release
 
-      # Package the application into an AppImage
       - name: Package (Linux)
         run: |
           mkdir -p package
@@ -42,7 +39,6 @@ jobs:
           mv Forex-Calculator*.AppImage Forex-Calculator.AppImage
           zip -j Forex-Calculator_Linux.zip Forex-Calculator.AppImage
 
-      # Upload the packaged Linux artifact
       - name: Upload Artifact (Linux)
         uses: actions/upload-artifact@v4
         with:
@@ -56,17 +52,14 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      # Install required dependencies for macOS build
       - name: Install Dependencies
         run: brew install ninja qt cmake
 
-      # Configure and build the project
       - name: Configure and Build
         run: |
           cmake -B build -DCMAKE_BUILD_TYPE=Release -G "Ninja"
           cmake --build build --config Release
 
-      # Package the application into a DMG (disk image)
       - name: Package (macOS)
         run: |
           mkdir -p package
@@ -74,7 +67,6 @@ jobs:
           macdeployqt package/Forex-Calculator.app -dmg
           zip -r Forex-Calculator_macOS.zip package/Forex-Calculator.app
 
-      # Upload the packaged macOS artifact
       - name: Upload Artifact (macOS)
         uses: actions/upload-artifact@v4
         with:
@@ -88,13 +80,11 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      # Install dependencies for Windows build
       - name: Install Dependencies
         run: |
           choco install ninja cmake mingw
         shell: cmd
 
-      # Install Qt on Windows using jurplel/install-qt-action
       - name: Install Qt (Windows)
         uses: jurplel/install-qt-action@v4
         with:
@@ -103,7 +93,6 @@ jobs:
           target: 'desktop'
           arch: 'win64_mingw'
 
-      # Configure and build the project for Windows
       - name: Configure and Build
         run: |
           cmake -B build -DCMAKE_BUILD_TYPE=Release ^
@@ -112,14 +101,12 @@ jobs:
           cmake --build build --config Release
         shell: cmd
 
-      # Package the Windows executable with dependencies using windeployqt
       - name: Package (Windows)
         run: |
           if (Test-Path "build/Forex-Calculator.exe") {
             mkdir package
             cp build/Forex-Calculator.exe package/
-            D:\a\Forex-Calculator\Qt\6.5.3\mingw_64\bin\windeployqt.exe ^
-              package/Forex-Calculator.exe
+            D:\a\Forex-Calculator\Qt\6.5.3\mingw_64\bin\windeployqt.exe package/Forex-Calculator.exe
             Compress-Archive -Path package -DestinationPath Forex-Calculator_Windows.zip
           } else {
             echo "Build failed or executable not found!"
@@ -127,14 +114,13 @@ jobs:
           }
         shell: pwsh
 
-      # Upload the packaged Windows artifact
       - name: Upload Artifact (Windows)
         uses: actions/upload-artifact@v4
         with:
           name: Forex-Calculator_Windows
           path: Forex-Calculator_Windows.zip
 
-  # ----------- Create GitHub Release and Upload Artifacts -----------
+  # ----------- Create GitHub Release -----------
   release:
     runs-on: ubuntu-latest
     needs: [build-linux, build-macos, build-windows]
@@ -142,22 +128,18 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      # Download all artifacts from the previous jobs
       - name: Download Artifacts
         uses: actions/download-artifact@v4
         with:
           path: artifacts
 
-      # List the files for verification
       - name: List Downloaded Files
         run: ls -R artifacts
 
-      # Generate a unique tag for the release
       - name: Generate Tag
         id: tag_name
         run: echo "RELEASE_TAG=release-$(date +%Y%m%d%H%M%S)" >> $GITHUB_ENV
 
-      # Create the GitHub release
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
@@ -168,7 +150,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # Upload all artifacts to the GitHub release
       - name: Upload Artifacts to Release
         run: |
           for file in $(find artifacts -type f); do
