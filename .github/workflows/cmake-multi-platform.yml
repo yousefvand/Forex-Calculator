@@ -10,58 +10,6 @@ permissions:
   contents: write
 
 jobs:
-  # ----------- Windows Build -----------
-  build-windows:
-    runs-on: windows-latest
-    steps:
-    - name: Checkout Code
-      uses: actions/checkout@v4
-
-    - name: Install Dependencies (Windows)
-      run: |
-        choco install ninja cmake mingw upx
-      shell: cmd
-
-    - name: Install Qt (Windows)
-      uses: jurplel/install-qt-action@v4
-      with:
-        version: '6.5.3'
-        host: 'windows'
-        target: 'desktop'
-        arch: 'win64_mingw'
-
-    - name: Configure CMake (Windows)
-      run: |
-        cmake -B build -DCMAKE_BUILD_TYPE=Release ^
-          -G Ninja ^
-          -DCMAKE_PREFIX_PATH="D:/a/Forex-Calculator/Qt/6.5.3/mingw_64" ^
-          -S .
-      shell: cmd
-
-    - name: Build Forex-Calculator (Windows)
-      run: cmake --build build --config Release
-      shell: cmd
-
-    - name: Deploy with windeployqt
-      run: |
-        mkdir -p package
-        D:\a\Forex-Calculator\Qt\6.5.3\mingw_64\bin\windeployqt.exe --release ^
-          --dir package build/Forex-Calculator.exe
-        copy build\Forex-Calculator.exe package\
-      shell: cmd
-
-    - name: Package Windows Executable
-      run: |
-        mkdir artifacts
-        Compress-Archive -Path package/* -DestinationPath artifacts/Forex-Calculator_Windows.zip
-      shell: pwsh
-
-    - name: Upload Artifact (Windows)
-      uses: actions/upload-artifact@v4
-      with:
-        name: Forex-Calculator_Windows
-        path: artifacts/Forex-Calculator_Windows.zip
-
   # ----------- Linux Build -----------
   build-linux:
     runs-on: ubuntu-22.04
@@ -73,8 +21,8 @@ jobs:
       run: |
         sudo apt update
         sudo apt install -y ninja-build build-essential qt6-base-dev \
-          libgl1-mesa-dev libglu1-mesa-dev rsync cmake patchelf
-
+          libgl1-mesa-dev libglu1-mesa-dev rsync cmake patchelf qt6-tools-dev qt6-l10n-tools
+          
     - name: Configure CMake (Linux)
       run: |
         cmake -B build -DCMAKE_BUILD_TYPE=Release \
@@ -120,17 +68,17 @@ jobs:
     - name: Build Forex-Calculator (macOS)
       run: cmake --build build --config Release
 
-    - name: Deploy with macdeployqt
+    - name: Deploy macOS App Bundle
       run: |
-        mkdir -p package
-        cp build/Forex-Calculator package/
-        macdeployqt package/Forex-Calculator -dmg
+        mkdir -p package/Forex-Calculator.app/Contents/MacOS
+        cp build/Forex-Calculator package/Forex-Calculator.app/Contents/MacOS/
+        macdeployqt package/Forex-Calculator.app -dmg
       shell: bash
 
     - name: Package macOS Executable
       run: |
-        mkdir artifacts
-        zip -r artifacts/Forex-Calculator_macOS.zip package/
+        mkdir -p artifacts
+        zip -r artifacts/Forex-Calculator_macOS.zip package/Forex-Calculator.app
       shell: bash
 
     - name: Upload Artifact (macOS)
@@ -138,6 +86,61 @@ jobs:
       with:
         name: Forex-Calculator_macOS
         path: artifacts/Forex-Calculator_macOS.zip
+
+  # ----------- Windows Build -----------
+  build-windows:
+    runs-on: windows-latest
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Install Dependencies (Windows)
+      run: |
+        choco install ninja cmake mingw
+      shell: cmd
+
+    - name: Install Qt (Windows)
+      uses: jurplel/install-qt-action@v4
+      with:
+        version: '6.5.3'
+        host: 'windows'
+        target: 'desktop'
+        arch: 'win64_mingw'
+
+    - name: Configure CMake (Windows)
+      run: |
+        cmake -B build -DCMAKE_BUILD_TYPE=Release ^
+          -G Ninja ^
+          -DCMAKE_PREFIX_PATH="D:\a\Forex-Calculator\Qt\6.5.3\mingw_64" ^
+          -S .
+      shell: cmd
+
+    - name: Build Forex-Calculator (Windows)
+      run: cmake --build build --config Release
+      shell: cmd
+
+    - name: Deploy with windeployqt
+      run: |
+        mkdir -p package
+        cp build/Forex-Calculator.exe package/
+        D:\a\Forex-Calculator\Qt\6.5.3\mingw_64\bin\windeployqt.exe --release ^
+          --no-compiler-runtime ^
+          --no-network ^
+          --dir package ^
+          package/Forex-Calculator.exe
+      shell: cmd
+
+    - name: Package Windows Executable
+      run: |
+        mkdir -p artifacts
+        Compress-Archive -Path package/* -DestinationPath artifacts/Forex-Calculator_Windows.zip
+      shell: pwsh
+
+    - name: Upload Artifact (Windows)
+      uses: actions/upload-artifact@v4
+      with:
+        name: Forex-Calculator_Windows
+        path: artifacts/Forex-Calculator_Windows.zip
 
   # ----------- Release Job -----------
   release:
