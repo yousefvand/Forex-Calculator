@@ -16,7 +16,7 @@ jobs:
     steps:
     - name: Checkout Code
       uses: actions/checkout@v4
-
+    
     - name: Cache CMake Build
       uses: actions/cache@v3
       with:
@@ -25,32 +25,30 @@ jobs:
         restore-keys: |
           cmake-build-${{ runner.os }}-
 
-    - name: Install Dependencies (Linux)
+    - name: Install Docker
       run: |
         sudo apt update
-        sudo apt install -y ninja-build build-essential libgl1-mesa-dev libglu1-mesa-dev rsync \
-        qt6-base-dev qt6-tools-dev qt6-tools-dev-tools qt6-l10n-tools libfuse2
-
-    - name: Install linuxdeployqt
-      run: |
-        wget https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage
-        chmod +x linuxdeployqt-continuous-x86_64.AppImage
-        sudo mv linuxdeployqt-continuous-x86_64.AppImage /usr/local/bin/linuxdeployqt
+        sudo apt install -y docker.io
     
-    - name: Configure CMake (Linux)
+    - name: Run Linux Build in Docker (Ubuntu 20.04)
       run: |
-        cmake -B build -DCMAKE_BUILD_TYPE=Release \
-          -G "Ninja" \
-          -S .
-    
-    - name: Build Forex-Calculator (Linux)
-      run: cmake --build build --config Release
-
-    - name: Deploy Qt Libraries (Linux)
-      run: |
-        linuxdeployqt build/Forex-Calculator -appimage
-        mkdir -p artifacts
-        mv Forex-Calculator*.AppImage artifacts/Forex-Calculator_linux.AppImage
+        docker run --rm \
+          -v ${{ github.workspace }}:/workspace \
+          -w /workspace \
+          ubuntu:20.04 \
+          /bin/bash -c "
+            apt update &&
+            apt install -y ninja-build build-essential libgl1-mesa-dev libglu1-mesa-dev rsync \
+            qt6-base-dev qt6-tools-dev qt6-tools-dev-tools qt6-l10n-tools wget &&
+            wget https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage &&
+            chmod +x linuxdeployqt-continuous-x86_64.AppImage &&
+            mv linuxdeployqt-continuous-x86_64.AppImage /usr/local/bin/linuxdeployqt &&
+            cmake -B build -DCMAKE_BUILD_TYPE=Release -G 'Ninja' -S . &&
+            cmake --build build --config Release &&
+            linuxdeployqt build/Forex-Calculator -appimage &&
+            mkdir -p artifacts &&
+            mv Forex-Calculator*.AppImage artifacts/Forex-Calculator_linux.AppImage
+          "
     
     - name: Upload Artifact (Linux)
       uses: actions/upload-artifact@v4
@@ -189,13 +187,5 @@ jobs:
         release_name: Forex-Calculator ${{ env.RELEASE_TAG }}
         draft: false
         prerelease: false
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-    - name: Upload Artifacts to Release
-      run: |
-        for file in $(find artifacts -type f); do
-          gh release upload ${{ env.RELEASE_TAG }} "$file"
-        done
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
