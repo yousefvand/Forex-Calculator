@@ -147,7 +147,7 @@ jobs:
         if (-not (Test-Path -Path "artifacts")) {
           mkdir artifacts
         }
-        Compress-Archive -Path "build/*" -DestinationPath "artifacts/Forex-Calculator_windows.zip"
+        Compress-Archive -Path "build/*" -DestinationPath "artifacts/Forex-Calculator_windows.zip" -Force
       shell: pwsh
 
     - name: Upload Artifact (Windows)
