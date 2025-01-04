@@ -31,7 +31,7 @@ jobs:
       run: |
         apt update
         apt install -y ninja-build build-essential libgl1-mesa-dev libglu1-mesa-dev rsync \
-        qt6-base-dev qt6-tools-dev qt6-tools-dev-tools qt6-l10n-tools wget
+        qt6-base-dev qt6-tools-dev qt6-tools-dev-tools qt6-l10n-tools cmake wget
 
     - name: Download and Setup linuxdeployqt
       run: |
@@ -72,7 +72,7 @@ jobs:
           cmake-build-${{ runner.os }}-
 
     - name: Install Dependencies (macOS)
-      run: brew install ninja qt
+      run: brew install ninja qt cmake
 
     - name: Configure CMake (macOS)
       run: |
