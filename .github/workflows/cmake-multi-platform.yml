@@ -96,14 +96,20 @@ jobs:
     shell: cmd
 
     # Locate and add windeployqt to PATH
-    - name: Locate and Add windeployqt to PATH
+    - name: Locate windeployqt
       run: |
-        $windeployqt = Get-ChildItem -Recurse -Filter windeployqt.exe "C:\Qt\" | Select-Object -First 1
-        if (-Not $windeployqt) {
-          Write-Error "windeployqt.exe not found. Installation failed."
-          exit 1
+        $windeployqt = Get-Command -ErrorAction SilentlyContinue -Name "windeployqt.exe"
+        if (-not $windeployqt) {
+          $qtPath = Get-ChildItem -Recurse -Filter windeployqt.exe "C:\Qt\" | Select-Object -First 1
+          if (-not $qtPath) {
+            Write-Error "windeployqt.exe not found. Installation failed or windeployqt is missing."
+            exit 1
+          }
+          echo $qtPath.Directory.FullName | Out-File -Append -Encoding utf8 $env:GITHUB_PATH
+          echo "windeployqt found at: $qtPath"
+        } else {
+          echo "windeployqt already in PATH."
         }
-        echo $windeployqt.Directory.FullName | Out-File -Append -Encoding utf8 $env:GITHUB_PATH
     shell: pwsh
 
     # Configure the CMake build
