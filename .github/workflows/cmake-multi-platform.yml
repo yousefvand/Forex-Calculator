@@ -76,33 +76,31 @@ jobs:
         name: Forex-Calculator_macos
         path: artifacts/Forex-Calculator_macos.zip
 
-  # ----------- Windows Build (windeployqt Fix) -----------
+  # ----------- Windows Build (windeployqt Fixed) -----------
   build-windows:
     runs-on: windows-latest
     steps:
     - name: Checkout Code
       uses: actions/checkout@v4
 
-    # Install dependencies like MinGW and CMake
     - name: Install Dependencies (Windows)
       run: |
         choco install ninja cmake mingw
     shell: cmd
 
-    # Install Qt using install-qt-action
+    # Install Qt fully via Chocolatey
     - name: Install Qt (Windows)
-      uses: jurplel/install-qt-action@v4
-      with:
-        version: '6.5.3'
-        host: 'windows'
-        target: 'desktop'
-        arch: 'win64_mingw'
-
-    # Install qt6-tools to get windeployqt
-    - name: Install Qt Tools (Windows)
       run: |
-        choco install qt6-tools
+        choco install qt6-default qt6-tools
+        refreshenv
     shell: cmd
+
+    # Add Qt to PATH
+    - name: Add Qt to PATH (Windows)
+      run: |
+        echo "C:\Program Files\Qt\Tools\QtCreator\bin" | Out-File -Append -Encoding utf8 $env:GITHUB_PATH
+        echo "C:\Qt\Tools\QtCreator\bin" | Out-File -Append -Encoding utf8 $env:GITHUB_PATH
+    shell: pwsh
 
     # Configure the CMake build
     - name: Configure CMake (Windows)
@@ -118,15 +116,10 @@ jobs:
       run: cmake --build build --config Release
     shell: cmd
 
-    # Locate and deploy Qt DLLs using windeployqt
+    # Deploy Qt DLLs using windeployqt
     - name: Deploy Qt DLLs (Windows)
       run: |
-        set "WINDEPLOYQT=C:\Qt\6.5.3\mingw_64\bin\windeployqt.exe"
-        if not exist "%WINDEPLOYQT%" (
-          echo "ERROR: windeployqt not found. Check Qt installation or PATH." >&2
-          exit 1
-        )
-        %WINDEPLOYQT% build\Forex-Calculator.exe
+        windeployqt.exe build\Forex-Calculator.exe
     shell: cmd
 
     # Package the resulting build into a zip file
