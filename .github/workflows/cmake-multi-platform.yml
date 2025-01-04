@@ -12,17 +12,14 @@ permissions:
 jobs:
   # ----------- Linux Build (AppImage) -----------
   build-linux:
-    runs-on: ubuntu-20.04
-    container: ubuntu:20.04
+    runs-on: ubuntu-22.04
+    container: ubuntu:22.04
     steps:
     - name: Checkout Code
       uses: actions/checkout@v4
 
-    - name: Add Qt6 Repository and Install Dependencies (Linux)
+    - name: Install Qt6 and Dependencies (Linux)
       run: |
-        apt update
-        apt install -y software-properties-common
-        add-apt-repository ppa:kubuntu-ppa/backports
         apt update
         apt install -y ninja-build build-essential libgl1-mesa-dev libglu1-mesa-dev rsync curl wget qt6-base-dev qt6-tools-dev qt6-tools-dev-tools qt6-l10n-tools
 
