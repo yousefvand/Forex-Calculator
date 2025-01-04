@@ -1,4 +1,4 @@
-name: Test Qt Deployment on Windows
+name: Build and Release Static Binaries
 
 on:
   push:
@@ -6,31 +6,75 @@ on:
   pull_request:
     branches: [main]
 
+permissions:
+  contents: write  # Permission granted
+
 jobs:
-  test-windeployqt:
-    runs-on: windows-latest
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [Linux, macOS, Windows]
+
     steps:
     - name: Checkout Code
       uses: actions/checkout@v4
-    
-    # Install Qt and Qt tools using Chocolatey
-    - name: Install Qt and Qt Tools (Windows)
+
+    # ---------------------------
+    # Linux Section (Basic Qt Install)
+    # ---------------------------
+    - name: Install Dependencies (Linux)
+      if: matrix.os == 'Linux'
+      run: |
+        sudo apt update
+        sudo apt install -y ninja-build build-essential libgl1-mesa-dev libglu1-mesa-dev rsync qt6-base-dev qt6-tools-dev
+
+    - name: Verify Qt Installation (Linux)
+      if: matrix.os == 'Linux'
+      run: |
+        ls /usr/lib/qt6/bin/ | grep windeployqt || echo "Qt tools not found"
+
+    # ---------------------------
+    # macOS Section (Basic Qt Install)
+    # ---------------------------
+    - name: Install Dependencies (macOS)
+      if: matrix.os == 'macOS'
+      run: brew install ninja qt
+
+    - name: Verify Qt Installation (macOS)
+      if: matrix.os == 'macOS'
+      run: |
+        ls $(brew --prefix qt)/bin/ | grep windeployqt || echo "Qt tools not found"
+
+    # ---------------------------
+    # Windows Section (Basic Qt Install)
+    # ---------------------------
+    - name: Install Dependencies (Windows)
+      if: matrix.os == 'Windows'
+      run: |
+        choco install ninja cmake mingw
+      shell: cmd
+
+    - name: Install Qt (Windows)
+      if: matrix.os == 'Windows'
       run: |
         choco install qt6-default qt6-tools
-    shell: cmd
+      shell: cmd
 
-    # Locate and log windeployqt
-    - name: Locate windeployqt
+    - name: Verify Qt Installation (Windows)
+      if: matrix.os == 'Windows'
       run: |
-        $windeployqt = Get-Command -ErrorAction SilentlyContinue -Name "windeployqt.exe"
+        dir "C:\Qt\" /s | findstr /i "windeployqt.exe"
+      shell: cmd
+
+    - name: Check for windeployqt Path (Windows)
+      if: matrix.os == 'Windows'
+      run: |
+        $windeployqt = Get-ChildItem -Recurse -Filter windeployqt.exe "C:\Qt\" | Select-Object -First 1
         if (-not $windeployqt) {
-          $qtPath = Get-ChildItem -Recurse -Filter windeployqt.exe "C:\Qt\" | Select-Object -First 1
-          if (-not $qtPath) {
-            Write-Error "windeployqt.exe not found. Installation failed or windeployqt is missing."
-            exit 1
-          }
-          echo "windeployqt found at: $($qtPath.FullName)"
-        } else {
-          echo "windeployqt already in PATH."
+          Write-Error "windeployqt.exe not found. Check Qt installation or PATH."
+          exit 1
         }
-    shell: pwsh
+        echo "windeployqt found at: $($windeployqt.FullName)"
+      shell: pwsh
