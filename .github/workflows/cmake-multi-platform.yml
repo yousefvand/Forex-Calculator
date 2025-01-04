@@ -23,15 +23,15 @@ jobs:
       run: |
         export DEBIAN_FRONTEND=noninteractive
         apt update
-        apt install -y wget ninja-build build-essential libgl1-mesa-dev libglu1-mesa-dev rsync \
+        apt install -y curl ninja-build build-essential libgl1-mesa-dev libglu1-mesa-dev rsync \
         qt6-base-dev qt6-tools-dev qt6-tools-dev-tools qt6-l10n-tools cmake libfuse2 || \
         echo "libfuse2 already installed"
 
     - name: Download and Setup linuxdeployqt
       run: |
-        wget https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage
-        chmod +x linuxdeployqt-continuous-x86_64.AppImage
-        mv linuxdeployqt-continuous-x86_64.AppImage /usr/local/bin/linuxdeployqt
+        curl -Lo linuxdeployqt https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage
+        chmod +x linuxdeployqt
+        sudo mv linuxdeployqt /usr/local/bin/linuxdeployqt
 
     - name: Configure and Build (Linux)
       run: |
