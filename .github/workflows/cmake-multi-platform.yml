@@ -18,14 +18,6 @@ jobs:
     steps:
     - name: Checkout Code
       uses: actions/checkout@v4
-    
-    - name: Cache CMake Build
-      uses: actions/cache@v3
-      with:
-        path: build
-        key: cmake-build-${{ runner.os }}-${{ github.ref }}
-        restore-keys: |
-          cmake-build-${{ runner.os }}-
 
     - name: Install Dependencies
       run: |
@@ -46,15 +38,9 @@ jobs:
 
     - name: Package AppImage
       run: |
-        if ! linuxdeployqt build/Forex-Calculator -appimage; then
-          echo "FUSE not found, extracting AppImage manually."
-          /usr/local/bin/linuxdeployqt --appimage-extract
-          mkdir -p artifacts
-          mv squashfs-root Forex-Calculator_linux.AppImage
-        else
-          mkdir -p artifacts
-          mv Forex-Calculator*.AppImage artifacts/Forex-Calculator_linux.AppImage
-        fi
+        linuxdeployqt build/Forex-Calculator -appimage
+        mkdir -p artifacts
+        mv Forex-Calculator*.AppImage artifacts/Forex-Calculator_linux.AppImage
 
     - name: Upload Artifact (Linux)
       uses: actions/upload-artifact@v4
@@ -69,25 +55,13 @@ jobs:
     - name: Checkout Code
       uses: actions/checkout@v4
 
-    - name: Cache CMake Build
-      uses: actions/cache@v3
-      with:
-        path: build
-        key: cmake-build-${{ runner.os }}-${{ github.ref }}
-        restore-keys: |
-          cmake-build-${{ runner.os }}-
-
     - name: Install Dependencies (macOS)
       run: brew install ninja qt cmake
 
-    - name: Configure CMake (macOS)
+    - name: Configure and Build (macOS)
       run: |
-        cmake -B build -DCMAKE_BUILD_TYPE=Release \
-          -G "Ninja" \
-          -S .
-    
-    - name: Build Forex-Calculator (macOS)
-      run: cmake --build build --config Release
+        cmake -B build -DCMAKE_BUILD_TYPE=Release -G "Ninja" -S .
+        cmake --build build --config Release
 
     - name: Package Forex-Calculator (macOS)
       run: |
@@ -107,21 +81,12 @@ jobs:
     - name: Checkout Code
       uses: actions/checkout@v4
 
-    - name: Cache Qt Installation
-      uses: actions/cache@v3
-      with:
-        path: D:\a\
-        key: qt-install-${{ runner.os }}-${{ github.ref }}
-        restore-keys: |
-          qt-install-${{ runner.os }}-
-
     - name: Install Dependencies (Windows)
       run: |
         choco install ninja cmake mingw
       shell: cmd
 
     - name: Install Qt (Windows)
-      if: steps.cache.outputs.cache-hit != 'true'
       uses: jurplel/install-qt-action@v4
       with:
         version: '6.5.3'
@@ -155,7 +120,9 @@ jobs:
 
     - name: Package Forex-Calculator (Windows)
       run: |
-        mkdir -p artifacts
+        if (-not (Test-Path -Path "artifacts")) {
+          mkdir artifacts
+        }
         Compress-Archive -Path "build/*" -DestinationPath "artifacts/Forex-Calculator_windows.zip"
       shell: pwsh
 
@@ -177,9 +144,6 @@ jobs:
       uses: actions/download-artifact@v4
       with:
         path: artifacts
-
-    - name: List Downloaded Files
-      run: ls -R artifacts
 
     - name: Generate Tag Name
       id: tag_name
