@@ -7,7 +7,7 @@ on:
     branches: [main]
 
 permissions:
-  contents: write
+  contents: write  # Required for creating releases and uploading artifacts
 
 jobs:
   # ----------- Linux Build (AppImage) -----------
@@ -40,7 +40,6 @@ jobs:
       run: |
         cmake -B build -DCMAKE_BUILD_TYPE=Release -G "Ninja" \
           -DCMAKE_PREFIX_PATH=/opt/Qt/6.5.3/gcc_64 -S .
-
     - name: Build Forex-Calculator (Linux)
       run: cmake --build build --config Release
 
@@ -63,7 +62,7 @@ jobs:
 
   # ----------- macOS Build -----------
   build-macos:
-    runs-on: macos-latest
+    runs-on: macOS-latest
     steps:
     - name: Checkout Code
       uses: actions/checkout@v4
@@ -118,6 +117,11 @@ jobs:
 
     - name: Build Forex-Calculator (Windows - Static)
       run: cmake --build build --config Release
+      shell: cmd
+
+    - name: Bundle Qt Dependencies (Windows)
+      run: |
+        windeployqt --release --no-compiler-runtime --no-patchqt --no-network build/Forex-Calculator.exe
       shell: cmd
 
     - name: Package Single Executable (Windows)
