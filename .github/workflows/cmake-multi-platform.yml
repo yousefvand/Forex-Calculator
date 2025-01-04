@@ -66,14 +66,6 @@ jobs:
     - name: Build Forex-Calculator (macOS)
       run: cmake --build build --config Release
 
-    - name: Verify Executable
-      run: |
-        ls build/
-        if [ ! -f "build/Forex-Calculator" ]; then
-          echo "Executable not found!"
-          exit 1
-        fi
-
     - name: Deploy macOS App Bundle
       run: |
         mkdir -p package/Forex-Calculator.app/Contents/MacOS
@@ -132,6 +124,8 @@ jobs:
           --no-network ^
           --dir package ^
           package/Forex-Calculator.exe
+        mkdir -p package/platforms
+        cp D:\a\Forex-Calculator\Qt\6.5.3\mingw_64\plugins\platforms\qwindows.dll package/platforms/
       shell: cmd
 
     - name: Package Windows Executable
@@ -159,27 +153,10 @@ jobs:
       with:
         path: artifacts
 
-    - name: List Downloaded Files
-      run: ls -R artifacts
-
-    - name: Generate Tag Name
-      id: tag_name
-      run: echo "RELEASE_TAG=release-$(date +%Y%m%d%H%M%S)" >> $GITHUB_ENV
-
     - name: Create GitHub Release
       uses: softprops/action-gh-release@v1
       with:
-        tag_name: ${{ env.RELEASE_TAG }}
-        release_name: Forex-Calculator Release
-        draft: false
-        prerelease: false
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-    - name: Upload Artifacts to Release
-      run: |
-        for file in $(find artifacts -type f); do
-          gh release upload ${{ env.RELEASE_TAG }} "$file"
-        done
+        tag_name: release-${{ github.run_id }}
+        files: artifacts/*
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
