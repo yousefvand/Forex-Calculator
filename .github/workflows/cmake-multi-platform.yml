@@ -20,7 +20,7 @@ jobs:
       run: |
         sudo apt update
         sudo apt install -y ninja-build build-essential libgl1-mesa-dev libglu1-mesa-dev rsync \
-        clang-13 llvm-13 libclang-13-dev
+        clang-13 llvm-13 libclang-13-dev qt6-base-dev qt6-tools-dev-tools qt6-l10n-tools
 
     - name: Configure CMake (Ubuntu)
       run: |
@@ -59,11 +59,13 @@ jobs:
     - name: Checkout Code
       uses: actions/checkout@v4
 
+    # --------- Install Dependencies ---------
     - name: Install Dependencies (Linux)
       if: matrix.os == 'ubuntu-latest'
       run: |
         sudo apt update
-        sudo apt install -y ninja-build build-essential libgl1-mesa-dev libglu1-mesa-dev rsync
+        sudo apt install -y ninja-build build-essential libgl1-mesa-dev libglu1-mesa-dev rsync \
+        qt6-base-dev qt6-tools-dev-tools qt6-l10n-tools
 
     - name: Install Dependencies (macOS)
       if: matrix.os == 'macos-latest'
@@ -75,6 +77,17 @@ jobs:
         choco install ninja cmake mingw
       shell: cmd
 
+    - name: Install Qt (Windows)
+      if: matrix.os == 'windows-latest'
+      uses: jurplel/install-qt-action@v4
+      with:
+        version: '6.5.3'
+        host: 'windows'
+        target: 'desktop'
+        arch: 'win64_mingw'
+        static: true
+
+    # --------- Configure and Build ---------
     - name: Configure CMake
       run: |
         cmake -B build -DCMAKE_BUILD_TYPE=Release \
@@ -101,6 +114,7 @@ jobs:
         name: Forex-Calculator_${{ runner.os }}
         path: artifacts/*
 
+    # --------- Release Section ---------
     - name: Generate Tag Name
       id: tag_name
       run: echo "RELEASE_TAG=release-$(date +%Y%m%d%H%M%S)" >> $GITHUB_ENV
