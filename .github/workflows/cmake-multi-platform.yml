@@ -13,6 +13,8 @@ jobs:
   # ----------- Linux Build -----------
   build-linux:
     runs-on: ubuntu-latest
+    container:
+      image: ubuntu:22.04
     steps:
     - name: Checkout Code
       uses: actions/checkout@v4
@@ -25,55 +27,29 @@ jobs:
         restore-keys: |
           cmake-build-${{ runner.os }}-
 
-    - name: Fix Containerd Conflict
+    - name: Install Dependencies
       run: |
-        sudo apt-get remove -y containerd docker.io || true
-        sudo apt-get autoremove -y
-        sudo apt-get update
+        apt update
+        apt install -y ninja-build build-essential libgl1-mesa-dev libglu1-mesa-dev rsync \
+        qt6-base-dev qt6-tools-dev qt6-tools-dev-tools qt6-l10n-tools wget
 
-    - name: Install Docker
+    - name: Download and Setup linuxdeployqt
       run: |
-        sudo apt-get install -y \
-          ca-certificates \
-          curl \
-          gnupg \
-          lsb-release
-          
-        # Add Docker’s official GPG key
-        sudo mkdir -p /etc/apt/keyrings
-        curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
-        
-        # Set up the Docker repository
-        echo \
-          "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
-          $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-        
-        sudo apt-get update
-        sudo apt-get install -y docker-ce docker-ce-cli containerd.io
+        wget https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage
+        chmod +x linuxdeployqt-continuous-x86_64.AppImage
+        mv linuxdeployqt-continuous-x86_64.AppImage /usr/local/bin/linuxdeployqt
 
-    - name: Run Linux Build in Docker (Ubuntu 20.04)
+    - name: Configure and Build
       run: |
-        docker run --rm \
-          -v ${{ github.workspace }}:/workspace \
-          -w /workspace \
-          ubuntu:20.04 \
-          /bin/bash -c "
-            apt update &&
-            apt install -y software-properties-common &&
-            add-apt-repository -y ppa:kubuntu-ppa/backports &&
-            apt update &&
-            apt install -y ninja-build build-essential libgl1-mesa-dev libglu1-mesa-dev rsync \
-            qt6-base-dev qt6-tools-dev qt6-tools-dev-tools qt6-l10n-tools wget &&
-            wget https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage &&
-            chmod +x linuxdeployqt-continuous-x86_64.AppImage &&
-            mv linuxdeployqt-continuous-x86_64.AppImage /usr/local/bin/linuxdeployqt &&
-            cmake -B build -DCMAKE_BUILD_TYPE=Release -G 'Ninja' -S . &&
-            cmake --build build --config Release &&
-            linuxdeployqt build/Forex-Calculator -appimage &&
-            mkdir -p artifacts &&
-            mv Forex-Calculator*.AppImage artifacts/Forex-Calculator_linux.AppImage
-          "
-    
+        cmake -B build -DCMAKE_BUILD_TYPE=Release -G 'Ninja' -S .
+        cmake --build build --config Release
+
+    - name: Package AppImage
+      run: |
+        linuxdeployqt build/Forex-Calculator -appimage
+        mkdir -p artifacts
+        mv Forex-Calculator*.AppImage artifacts/Forex-Calculator_linux.AppImage
+
     - name: Upload Artifact (Linux)
       uses: actions/upload-artifact@v4
       with:
@@ -170,3 +146,53 @@ jobs:
           exit 1
         }
       shell: pwsh
+
+    - name: Package Forex-Calculator (Windows)
+      run: |
+        mkdir -p artifacts
+        Compress-Archive -Path "build/*" -DestinationPath "artifacts/Forex-Calculator_windows.zip"
+      shell: pwsh
+
+    - name: Upload Artifact (Windows)
+      uses: actions/upload-artifact@v4
+      with:
+        name: Forex-Calculator_windows
+        path: artifacts/Forex-Calculator_windows.zip
+
+  # ----------- Release Job -----------
+  release:
+    runs-on: ubuntu-latest
+    needs: [build-linux, build-macos, build-windows]
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Download Artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: artifacts
+
+    - name: List Downloaded Files
+      run: ls -R artifacts
+
+    - name: Generate Tag Name
+      id: tag_name
+      run: echo "RELEASE_TAG=release-$(date +%Y%m%d%H%M%S)" >> $GITHUB_ENV
+
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: ${{ env.RELEASE_TAG }}
+        release_name: Forex-Calculator Release
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Upload Artifacts to Release
+      run: |
+        for file in $(find artifacts -type f); do
+          gh release upload ${{ env.RELEASE_TAG }} "$file"
+        done
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
