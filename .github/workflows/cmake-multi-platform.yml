@@ -39,22 +39,22 @@ jobs:
     - name: Package AppImage
       run: |
         set -e
-        if ! linuxdeployqt build/Forex-Calculator -appimage; then
+        mkdir -p artifacts
+        if linuxdeployqt build/Forex-Calculator -appimage; then
+          mv Forex-Calculator*.AppImage artifacts/Forex-Calculator_linux.AppImage
+        else
           echo "FUSE failed, extracting AppImage manually."
           /usr/local/bin/linuxdeployqt --appimage-extract
-          mkdir -p artifacts
-          mv squashfs-root artifacts/Forex-Calculator_linux.AppImage
-        else
-          mkdir -p artifacts
-          mv Forex-Calculator*.AppImage artifacts/Forex-Calculator_linux.AppImage
+          tar -czvf artifacts/Forex-Calculator_linux_extracted.tar.gz squashfs-root/
+          rm -rf squashfs-root appimagetool AppRun  # Remove unnecessary files
         fi
 
     - name: Upload Artifact (Linux)
       uses: actions/upload-artifact@v4
       with:
         name: Forex-Calculator_linux
-        path: artifacts/Forex-Calculator_linux.AppImage
-
+        path: artifacts/*
+  
   # ----------- macOS Build -----------
   build-macos:
     runs-on: macos-latest
@@ -143,33 +143,4 @@ jobs:
   release:
     runs-on: ubuntu-latest
     needs: [build-linux, build-macos, build-windows]
-    steps:
-    - name: Checkout Code
-      uses: actions/checkout@v4
-
-    - name: Download Artifacts
-      uses: actions/download-artifact@v4
-      with:
-        path: artifacts
-
-    - name: Generate Tag Name
-      id: tag_name
-      run: echo "RELEASE_TAG=release-$(date +%Y%m%d%H%M%S)" >> $GITHUB_ENV
-
-    - name: Create GitHub Release
-      uses: softprops/action-gh-release@v1
-      with:
-        tag_name: ${{ env.RELEASE_TAG }}
-        release_name: Forex-Calculator Release
-        draft: false
-        prerelease: false
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-    - name: Upload Artifacts to Release
-      run: |
-        for file in $(find artifacts -type f); do
-          gh release upload ${{ env.RELEASE_TAG }} "$file"
-        done
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  
