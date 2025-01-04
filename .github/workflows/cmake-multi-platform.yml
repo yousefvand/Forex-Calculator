@@ -1,4 +1,4 @@
-name: Build and Release Forex Calculator
+name: Build and Package Qt Application
 
 on:
   push:
@@ -10,153 +10,160 @@ permissions:
   contents: write
 
 jobs:
-  # ----------- Linux Build -----------
+  # ----------- Linux Build and Package -----------
   build-linux:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     steps:
-    - name: Checkout Code
-      uses: actions/checkout@v4
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
-    - name: Install Dependencies (Linux)
-      run: |
-        sudo apt update
-        sudo apt install -y ninja-build build-essential qt6-base-dev \
-          libgl1-mesa-dev libglu1-mesa-dev rsync cmake patchelf qt6-tools-dev qt6-l10n-tools
+      # Install required dependencies for Linux build
+      - name: Install Dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y ninja-build build-essential qt6-base-dev qt6-tools-dev-tools linuxdeployqt cmake
 
-    - name: Configure CMake (Linux)
-      run: |
-        cmake -B build -DCMAKE_BUILD_TYPE=Release \
-          -G "Ninja" \
-          -DCMAKE_PREFIX_PATH="/usr/lib/qt6" \
-          -S .
+      # Configure and build the project using CMake and Ninja
+      - name: Configure and Build
+        run: |
+          cmake -B build -DCMAKE_BUILD_TYPE=Release -G "Ninja"
+          cmake --build build --config Release
 
-    - name: Build Forex-Calculator (Linux)
-      run: cmake --build build --config Release
+      # Package the application into an AppImage
+      - name: Package (Linux)
+        run: |
+          mkdir package
+          cp build/Forex-Calculator package/
+          linuxdeployqt package/Forex-Calculator -appimage
+          mv Forex-Calculator*.AppImage Forex-Calculator.AppImage
+          zip -j Forex-Calculator_Linux.zip Forex-Calculator.AppImage
 
-    - name: Deploy with linuxdeployqt
-      run: |
-        mkdir -p package
-        cp build/Forex-Calculator package/
-        linuxdeployqt package/Forex-Calculator -bundle-non-qt-libs
+      # Upload the packaged Linux artifact
+      - name: Upload Artifact (Linux)
+        uses: actions/upload-artifact@v4
+        with:
+          name: Forex-Calculator_Linux
+          path: Forex-Calculator_Linux.zip
 
-    - name: Package Linux Executable
-      run: |
-        mkdir artifacts
-        tar -czvf artifacts/Forex-Calculator_Linux.tar.gz -C package .
-
-    - name: Upload Artifact (Linux)
-      uses: actions/upload-artifact@v4
-      with:
-        name: Forex-Calculator_Linux
-        path: artifacts/Forex-Calculator_Linux.tar.gz
-
-  # ----------- macOS Build -----------
+  # ----------- macOS Build and Package -----------
   build-macos:
     runs-on: macos-latest
     steps:
-    - name: Checkout Code
-      uses: actions/checkout@v4
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
-    - name: Install Dependencies (macOS)
-      run: brew install ninja qt cmake
+      # Install required dependencies for macOS build
+      - name: Install Dependencies
+        run: brew install ninja qt cmake
 
-    - name: Configure CMake (macOS)
-      run: cmake -B build -DCMAKE_BUILD_TYPE=Release -G "Ninja" -S .
+      # Configure and build the project
+      - name: Configure and Build
+        run: |
+          cmake -B build -DCMAKE_BUILD_TYPE=Release -G "Ninja"
+          cmake --build build --config Release
 
-    - name: Build Forex-Calculator (macOS)
-      run: cmake --build build --config Release
+      # Package the application into a DMG (disk image)
+      - name: Package (macOS)
+        run: |
+          mkdir package
+          cp -r build/Forex-Calculator.app package/
+          macdeployqt package/Forex-Calculator.app -dmg
+          zip -r Forex-Calculator_macOS.zip package/Forex-Calculator.app
 
-    - name: Deploy macOS App Bundle
-      run: |
-        mkdir -p package/Forex-Calculator.app/Contents/MacOS
-        cp build/Forex-Calculator package/Forex-Calculator.app/Contents/MacOS/
-        /usr/local/opt/qt/bin/macdeployqt package/Forex-Calculator.app -dmg
+      # Upload the packaged macOS artifact
+      - name: Upload Artifact (macOS)
+        uses: actions/upload-artifact@v4
+        with:
+          name: Forex-Calculator_macOS
+          path: Forex-Calculator_macOS.zip
 
-    - name: Package macOS Executable
-      run: |
-        mkdir -p artifacts
-        zip -r artifacts/Forex-Calculator_macOS.zip package/Forex-Calculator.app
-
-    - name: Upload Artifact (macOS)
-      uses: actions/upload-artifact@v4
-      with:
-        name: Forex-Calculator_macOS
-        path: artifacts/Forex-Calculator_macOS.zip
-
-  # ----------- Windows Build -----------
+  # ----------- Windows Build and Package -----------
   build-windows:
     runs-on: windows-latest
     steps:
-    - name: Checkout Code
-      uses: actions/checkout@v4
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
-    - name: Install Dependencies (Windows)
-      run: |
-        choco install ninja cmake mingw
-      shell: cmd
+      # Install dependencies for Windows build
+      - name: Install Dependencies
+        run: |
+          choco install ninja cmake mingw
+        shell: cmd
 
-    - name: Install Qt (Windows)
-      uses: jurplel/install-qt-action@v4
-      with:
-        version: '6.5.3'
-        host: 'windows'
-        target: 'desktop'
-        arch: 'win64_mingw'
+      # Install Qt on Windows using jurplel/install-qt-action
+      - name: Install Qt (Windows)
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: '6.5.3'
+          host: 'windows'
+          target: 'desktop'
+          arch: 'win64_mingw'
 
-    - name: Configure CMake (Windows)
-      run: |
-        cmake -B build -DCMAKE_BUILD_TYPE=Release ^
-          -G Ninja ^
-          -DCMAKE_PREFIX_PATH="D:\a\Forex-Calculator\Qt\6.5.3\mingw_64" ^
-          -S .
-      shell: cmd
+      # Configure and build the project for Windows
+      - name: Configure and Build
+        run: |
+          cmake -B build -DCMAKE_BUILD_TYPE=Release ^
+            -G Ninja ^
+            -DCMAKE_PREFIX_PATH="D:\a\Forex-Calculator\Qt\6.5.3\mingw_64"
+          cmake --build build --config Release
+        shell: cmd
 
-    - name: Build Forex-Calculator (Windows)
-      run: cmake --build build --config Release
-      shell: cmd
+      # Package the Windows executable with dependencies using windeployqt
+      - name: Package (Windows)
+        run: |
+          mkdir package
+          cp build/Forex-Calculator.exe package/
+          D:\a\Forex-Calculator\Qt\6.5.3\mingw_64\bin\windeployqt.exe ^
+            package/Forex-Calculator.exe
+          Compress-Archive -Path package -DestinationPath Forex-Calculator_Windows.zip
+        shell: pwsh
 
-    - name: Deploy with windeployqt
-      run: |
-        mkdir -p package
-        cp build/Forex-Calculator.exe package/
-        D:\a\Forex-Calculator\Qt\6.5.3\mingw_64\bin\windeployqt.exe --release ^
-          --no-compiler-runtime ^
-          --no-network ^
-          --dir package ^
-          package/Forex-Calculator.exe
-        mkdir -p package/platforms
-        cp D:\a\Forex-Calculator\Qt\6.5.3\mingw_64\plugins\platforms\qwindows.dll package/platforms/
-      shell: cmd
+      # Upload the packaged Windows artifact
+      - name: Upload Artifact (Windows)
+        uses: actions/upload-artifact@v4
+        with:
+          name: Forex-Calculator_Windows
+          path: Forex-Calculator_Windows.zip
 
-    - name: Package Windows Executable
-      run: |
-        mkdir -p artifacts
-        Compress-Archive -Path package/* -DestinationPath artifacts/Forex-Calculator_Windows.zip
-      shell: pwsh
-
-    - name: Upload Artifact (Windows)
-      uses: actions/upload-artifact@v4
-      with:
-        name: Forex-Calculator_Windows
-        path: artifacts/Forex-Calculator_Windows.zip
-
-  # ----------- Release Job -----------
+  # ----------- Create GitHub Release and Upload Artifacts -----------
   release:
     runs-on: ubuntu-latest
     needs: [build-linux, build-macos, build-windows]
     steps:
-    - name: Checkout Code
-      uses: actions/checkout@v4
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
-    - name: Download Artifacts
-      uses: actions/download-artifact@v4
-      with:
-        path: artifacts
+      # Download all artifacts from the previous jobs
+      - name: Download Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
 
-    - name: Create GitHub Release
-      uses: softprops/action-gh-release@v1
-      with:
-        tag_name: release-${{ github.run_id }}
-        files: artifacts/*
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # List the files for verification
+      - name: List Downloaded Files
+        run: ls -R artifacts
+
+      # Generate a unique tag for the release
+      - name: Generate Tag
+        id: tag_name
+        run: echo "RELEASE_TAG=release-$(date +%Y%m%d%H%M%S)" >> $GITHUB_ENV
+
+      # Create the GitHub release
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ env.RELEASE_TAG }}
+          release_name: Forex-Calculator Release
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Upload all artifacts to the GitHub release
+      - name: Upload Artifacts to Release
+        run: |
+          for file in $(find artifacts -type f); do
+            gh release upload ${{ env.RELEASE_TAG }} "$file"
+          done
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
