@@ -14,27 +14,24 @@ jobs:
   build-linux:
     runs-on: ubuntu-latest
     container:
-      image: ubuntu:20.04  # Ensures compatibility with glibc 2.31
+      image: ubuntu:20.04  # Compatible with glibc 2.31
     steps:
     - name: Checkout Code
       uses: actions/checkout@v4
 
-    - name: Install Essential Tools and curl
+    - name: Install Essential Tools and cmake
       run: |
         export DEBIAN_FRONTEND=noninteractive
         apt update
-        apt install -y curl wget ninja-build build-essential libgl1-mesa-dev libglu1-mesa-dev rsync \
-        qt6-base-dev qt6-tools-dev qt6-tools-dev-tools qt6-l10n-tools cmake libfuse2 || \
+        apt install -y cmake curl wget ninja-build build-essential libgl1-mesa-dev libglu1-mesa-dev rsync \
+        qt6-base-dev qt6-tools-dev qt6-tools-dev-tools qt6-l10n-tools libfuse2 || \
         echo "Some packages already installed"
 
     - name: Download and Setup linuxdeployqt
       run: |
-        if ! command -v curl &> /dev/null; then
-          apt install -y curl
-        fi
         curl -Lo linuxdeployqt https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage
         chmod +x linuxdeployqt
-        mv linuxdeployqt /usr/local/bin/linuxdeployqt  # Remove sudo, mv works as root
+        mv linuxdeployqt /usr/local/bin/linuxdeployqt  # No sudo needed in container
 
     - name: Configure and Build (Linux)
       run: |
