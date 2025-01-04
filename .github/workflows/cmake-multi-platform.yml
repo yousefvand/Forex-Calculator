@@ -23,7 +23,7 @@ jobs:
       run: |
         export DEBIAN_FRONTEND=noninteractive
         apt update
-        apt install -y curl ninja-build build-essential libgl1-mesa-dev libglu1-mesa-dev rsync \
+        apt install -y curl wget ninja-build build-essential libgl1-mesa-dev libglu1-mesa-dev rsync \
         qt6-base-dev qt6-tools-dev qt6-tools-dev-tools qt6-l10n-tools cmake libfuse2 || \
         echo "libfuse2 already installed"
 
