@@ -112,6 +112,7 @@ jobs:
         cmake -B build -DCMAKE_BUILD_TYPE=Release ^
           -G Ninja ^
           -DCMAKE_EXE_LINKER_FLAGS="-static -static-libgcc -static-libstdc++" ^
+          -DCMAKE_PREFIX_PATH="D:\a\Forex-Calculator\Qt\6.5.3\mingw_64" ^
           -S .
       shell: cmd
 
@@ -121,7 +122,8 @@ jobs:
 
     - name: Bundle Qt Dependencies (Windows)
       run: |
-        windeployqt --release --no-compiler-runtime --no-patchqt --no-network build/Forex-Calculator.exe
+        D:\a\Forex-Calculator\Qt\6.5.3\mingw_64\bin\windeployqt.exe --release --no-compiler-runtime ^
+          --no-network --no-patchqt build/Forex-Calculator.exe
       shell: cmd
 
     - name: Package Single Executable (Windows)
