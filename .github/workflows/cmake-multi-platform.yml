@@ -13,19 +13,21 @@ jobs:
   # ----------- Linux Build (AppImage) -----------
   build-linux:
     runs-on: ubuntu-22.04
-    container: ubuntu:20.04  # Use Ubuntu 20.04 for better AppImage compatibility
+    container: ubuntu:20.04
     steps:
     - name: Checkout Code
       uses: actions/checkout@v4
 
-    - name: Install CMake and Dependencies (Linux)
+    - name: Install Dependencies
       run: |
         apt update
-        apt install -y software-properties-common curl wget fuse libfuse2
-        add-apt-repository ppa:kubuntu-ppa/backports -y
-        apt update
-        apt install -y ninja-build build-essential libgl1-mesa-dev libglu1-mesa-dev rsync \
-        cmake qt6-base-dev qt6-tools-dev qt6-tools-dev-tools qt6-l10n-tools
+        apt install -y software-properties-common curl wget build-essential ninja-build libgl1-mesa-dev libglu1-mesa-dev rsync cmake fuse libfuse2
+
+    - name: Download and Install Qt
+      run: |
+        curl -Lo qt-installer.run https://download.qt.io/official_releases/online_installers/qt-unified-linux-x64-online.run
+        chmod +x qt-installer.run
+        ./qt-installer.run --script qt_installer_script.qs
 
     - name: Download linuxdeployqt
       run: |
