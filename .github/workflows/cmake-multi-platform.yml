@@ -21,7 +21,10 @@ jobs:
       - name: Install Dependencies
         run: |
           sudo apt update
-          sudo apt install -y ninja-build build-essential qt6-base-dev qt6-tools-dev-tools linuxdeployqt cmake
+          sudo apt install -y ninja-build build-essential qt6-base-dev qt6-tools-dev-tools cmake
+          curl -Lo linuxdeployqt https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage
+          chmod +x linuxdeployqt
+          sudo mv linuxdeployqt /usr/local/bin/linuxdeployqt
 
       # Configure and build the project using CMake and Ninja
       - name: Configure and Build
@@ -32,7 +35,7 @@ jobs:
       # Package the application into an AppImage
       - name: Package (Linux)
         run: |
-          mkdir package
+          mkdir -p package
           cp build/Forex-Calculator package/
           linuxdeployqt package/Forex-Calculator -appimage
           mv Forex-Calculator*.AppImage Forex-Calculator.AppImage
@@ -65,7 +68,7 @@ jobs:
       # Package the application into a DMG (disk image)
       - name: Package (macOS)
         run: |
-          mkdir package
+          mkdir -p package
           cp -r build/Forex-Calculator.app package/
           macdeployqt package/Forex-Calculator.app -dmg
           zip -r Forex-Calculator_macOS.zip package/Forex-Calculator.app
@@ -111,11 +114,16 @@ jobs:
       # Package the Windows executable with dependencies using windeployqt
       - name: Package (Windows)
         run: |
-          mkdir package
-          cp build/Forex-Calculator.exe package/
-          D:\a\Forex-Calculator\Qt\6.5.3\mingw_64\bin\windeployqt.exe ^
-            package/Forex-Calculator.exe
-          Compress-Archive -Path package -DestinationPath Forex-Calculator_Windows.zip
+          mkdir -p package
+          if (Test-Path "build/Forex-Calculator.exe") {
+            cp build/Forex-Calculator.exe package/
+            D:\a\Forex-Calculator\Qt\6.5.3\mingw_64\bin\windeployqt.exe ^
+              package/Forex-Calculator.exe
+            Compress-Archive -Path package -DestinationPath Forex-Calculator_Windows.zip
+          } else {
+            echo "Build failed or executable not found!"
+            exit 1
+          }
         shell: pwsh
 
       # Upload the packaged Windows artifact
