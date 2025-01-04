@@ -38,9 +38,16 @@ jobs:
 
     - name: Package AppImage
       run: |
-        linuxdeployqt build/Forex-Calculator -appimage
-        mkdir -p artifacts
-        mv Forex-Calculator*.AppImage artifacts/Forex-Calculator_linux.AppImage
+        set -e
+        if ! linuxdeployqt build/Forex-Calculator -appimage; then
+          echo "FUSE failed, extracting AppImage manually."
+          /usr/local/bin/linuxdeployqt --appimage-extract
+          mkdir -p artifacts
+          mv squashfs-root artifacts/Forex-Calculator_linux.AppImage
+        else
+          mkdir -p artifacts
+          mv Forex-Calculator*.AppImage artifacts/Forex-Calculator_linux.AppImage
+        fi
 
     - name: Upload Artifact (Linux)
       uses: actions/upload-artifact@v4
