@@ -34,7 +34,7 @@ jobs:
         fi
         curl -Lo linuxdeployqt https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage
         chmod +x linuxdeployqt
-        sudo mv linuxdeployqt /usr/local/bin/linuxdeployqt
+        mv linuxdeployqt /usr/local/bin/linuxdeployqt  # Remove sudo, mv works as root
 
     - name: Configure and Build (Linux)
       run: |
@@ -104,7 +104,7 @@ jobs:
         host: 'windows'
         target: 'desktop'
         arch: 'win64_mingw'
-        static: true  # Install static Qt
+        static: true
 
     - name: Configure CMake (Windows - Static)
       run: |
