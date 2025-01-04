@@ -144,9 +144,8 @@ jobs:
 
     - name: Package Forex-Calculator (Windows)
       run: |
-        mkdir artifacts
-        if (Test-Path "C:\MinGW\bin\libstdc++-6.dll") {
-          Copy-Item "C:\MinGW\bin\libstdc++-6.dll" -Destination "build\"
+        if (-not (Test-Path -Path "artifacts")) {
+          mkdir artifacts
         }
         Compress-Archive -Path "build/*" -DestinationPath "artifacts/Forex-Calculator_windows.zip"
       shell: pwsh
