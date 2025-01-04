@@ -21,7 +21,7 @@ jobs:
     - name: Install CMake and Dependencies (Linux)
       run: |
         apt update
-        apt install -y ninja-build build-essential libgl1-mesa-dev libglu1-mesa-dev rsync curl wget cmake qt6-base-dev qt6-tools-dev qt6-tools-dev-tools qt6-l10n-tools
+        apt install -y ninja-build build-essential libgl1-mesa-dev libglu1-mesa-dev rsync curl wget cmake qt6-base-dev qt6-tools-dev qt6-tools-dev-tools qt6-l10n-tools libfuse2
 
     - name: Download linuxdeployqt
       run: |
