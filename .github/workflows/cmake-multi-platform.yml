@@ -25,11 +25,16 @@ jobs:
         restore-keys: |
           cmake-build-${{ runner.os }}-
 
+    - name: Remove Conflicting Packages
+      run: |
+        sudo apt-get remove -y containerd.io containerd docker.io || true
+        sudo apt-get autoremove -y
+    
     - name: Install Docker
       run: |
-        sudo apt update
-        sudo apt install -y docker.io
-    
+        sudo apt-get update
+        sudo apt-get install -y docker.io
+
     - name: Run Linux Build in Docker (Ubuntu 20.04)
       run: |
         docker run --rm \
