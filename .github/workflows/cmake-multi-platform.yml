@@ -99,7 +99,7 @@ jobs:
     - name: Cache Qt Installation
       uses: actions/cache@v3
       with:
-        path: C:\Qt
+        path: D:\a\
         key: qt-install-${{ runner.os }}-${{ github.ref }}
         restore-keys: |
           qt-install-${{ runner.os }}-
@@ -117,7 +117,6 @@ jobs:
         host: 'windows'
         target: 'desktop'
         arch: 'win64_mingw'
-        static: true
 
     - name: Configure CMake (Windows)
       run: |
@@ -134,7 +133,7 @@ jobs:
     # Improved windeployqt detection and execution
     - name: Deploy Qt DLLs (Windows)
       run: |
-        $windeployqt = Get-ChildItem -Recurse -Filter windeployqt.exe "C:\Qt\" | Select-Object -First 1
+        $windeployqt = Get-ChildItem -Recurse -Filter windeployqt.exe "D:\a\" | Select-Object -First 1
         if ($windeployqt) {
           Write-Host "windeployqt found at: $($windeployqt.FullName)"
           & "$($windeployqt.FullName)" --dir build build\Forex-Calculator.exe
