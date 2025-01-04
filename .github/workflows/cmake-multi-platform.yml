@@ -10,17 +10,20 @@ permissions:
   contents: write
 
 jobs:
-  # ----------- Linux Build (AppImage) -----------
+  # ----------- Linux Build (AppImage with Focal Container) -----------
   build-linux:
     runs-on: ubuntu-latest
+    container:
+      image: ubuntu:20.04  # Use Ubuntu 20.04 to ensure glibc 2.31
     steps:
     - name: Checkout Code
       uses: actions/checkout@v4
 
     - name: Install Dependencies (Linux)
       run: |
-        sudo apt update
-        sudo apt install -y ninja-build build-essential libgl1-mesa-dev libglu1-mesa-dev rsync \
+        export DEBIAN_FRONTEND=noninteractive
+        apt update
+        apt install -y ninja-build build-essential libgl1-mesa-dev libglu1-mesa-dev rsync \
         qt6-base-dev qt6-tools-dev qt6-tools-dev-tools qt6-l10n-tools cmake wget libfuse2 || \
         echo "libfuse2 already installed"
 
