@@ -31,6 +31,19 @@ jobs:
     # ---------------------------
     # Ubuntu Section (Static Qt)
     # ---------------------------
+    - name: Cache APT Packages (Ubuntu)
+      if: matrix.os == 'ubuntu-latest'
+      uses: awalsh128/cache-apt-pkgs-action@latest
+      with:
+        packages: ninja-build build-essential libgl1-mesa-dev libglu1-mesa-dev rsync libpcre3 \
+          libx11-dev libxext-dev libxfixes-dev libxi-dev libxrender-dev libxcb1-dev libx11-xcb-dev \
+          libxcb-glx0-dev libxrandr-dev libxcb-randr0-dev libxcb-shm0-dev libxcb-xfixes0-dev \
+          libxcb-shape0-dev libxcb-sync-dev libxkbcommon-dev libxkbcommon-x11-dev \
+          libssl-dev libxcb-keysyms1-dev libxcb-image0-dev libxcb-util-dev libxcb-icccm4-dev \
+          libxcb-render-util0-dev libxcb-xinerama0-dev libxcb-cursor-dev libpulse-dev \
+          libasound2-dev gperf bison flex libdrm-dev mesa-common-dev perl python3
+        version: 1.0
+
     - name: Install Dependencies (Ubuntu)
       if: matrix.os == 'ubuntu-latest'
       run: |
@@ -41,10 +54,20 @@ jobs:
           libxcb-shape0-dev libxcb-sync-dev libxkbcommon-dev libxkbcommon-x11-dev \
           libssl-dev libxcb-keysyms1-dev libxcb-image0-dev libxcb-util-dev libxcb-icccm4-dev \
           libxcb-render-util0-dev libxcb-xinerama0-dev libxcb-cursor-dev libpulse-dev \
-          libasound2-dev gperf bison flex libdrm-dev mesa-common-dev
+          libasound2-dev gperf bison flex libdrm-dev mesa-common-dev perl python3
+
+    - name: Cache Qt Build (Ubuntu)
+      if: matrix.os == 'ubuntu-latest'
+      id: cache-qt
+      uses: actions/cache@v4
+      with:
+        path: ${{ github.workspace }}/qt-static
+        key: qt-static-${{ runner.os }}-${{ hashFiles('qt5/qtbase/**') }}
+        restore-keys: |
+          qt-static-${{ runner.os }}-
 
     - name: Build Qt Static (Ubuntu)
-      if: matrix.os == 'ubuntu-latest'
+      if: matrix.os == 'ubuntu-latest' && steps.cache-qt.outputs.cache-hit != 'true'
       run: |
         git clone https://code.qt.io/qt/qt5.git
         cd qt5
@@ -53,7 +76,9 @@ jobs:
         mkdir build-static
         cd build-static
         ../configure -release -static -prefix ${{ github.workspace }}/qt-static -opensource -confirm-license \
-        -nomake examples -nomake tests -skip qtwebengine -skip qt3d -skip qtmultimedia -skip qtspeech -openssl-linked
+        -nomake examples -nomake tests -skip qtwebengine -skip qt3d -skip qtmultimedia -skip qtspeech \
+        -skip qtsensors -skip qtserialbus -skip qtopcua -openssl-linked \
+        -v  # Enable verbose logging for better debugging
         make -j$(nproc)
         make install
 
@@ -81,7 +106,6 @@ jobs:
       with:
         name: Forex-Calculator_ubuntu
         path: artifacts/Forex-Calculator_ubuntu.tar.gz
-
 
     # ---------------------------
     # macOS Section (Static Qt)
@@ -114,59 +138,6 @@ jobs:
       with:
         name: Forex-Calculator_macos
         path: artifacts/Forex-Calculator_macos.zip
-
-
-    # ---------------------------
-    # Windows Section (Improved)
-    # ---------------------------
-    - name: Install dependencies (Windows)
-      if: matrix.os == 'windows-latest'
-      run: |
-        choco install ninja cmake mingw
-      shell: cmd
-
-    - name: Install Qt (Windows)
-      if: matrix.os == 'windows-latest'
-      uses: jurplel/install-qt-action@v4
-      with:
-        version: '6.5.3'
-        host: 'windows'
-        target: 'desktop'
-        arch: 'win64_mingw'
-
-    - name: Configure CMake (Windows)
-      if: matrix.os == 'windows-latest'
-      run: |
-        set Qt6_DIR=D:\a\Forex-Calculator\Qt\6.5.3\mingw_64
-        cmake -B "${{ github.workspace }}\\build" ^
-          -DCMAKE_BUILD_TYPE=Release ^
-          -G Ninja ^
-          -DCMAKE_PREFIX_PATH="%Qt6_DIR%" ^
-          -S "${{ github.workspace }}"
-      shell: cmd
-
-    - name: Build Forex-Calculator (Windows)
-      if: matrix.os == 'windows-latest'
-      run: cmake --build "${{ github.workspace }}\\build" --config Release
-      shell: cmd
-
-    - name: Package Forex-Calculator (Windows)
-      if: matrix.os == 'windows-latest'
-      run: |
-        mkdir package
-        xcopy /Y /I build\Forex-Calculator.exe package\
-        $env:PATH="D:\a\Forex-Calculator\Qt\6.5.3\mingw_64\bin;$env:PATH"
-        windeployqt.exe package\Forex-Calculator.exe
-        Compress-Archive -Path package -DestinationPath Forex-Calculator_windows.zip
-      shell: pwsh
-
-    - name: Upload Artifact (Windows)
-      if: matrix.os == 'windows-latest'
-      uses: actions/upload-artifact@v4
-      with:
-        name: Forex-Calculator_windows
-        path: Forex-Calculator_windows.zip
-
 
   # ---------------------------
   # Release Job (After Build)
