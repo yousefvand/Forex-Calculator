@@ -40,12 +40,16 @@ jobs:
       run: |
         wget https://download.qt.io/official_releases/online_installers/qt-unified-linux-x64-online.run
         chmod +x qt-unified-linux-x64-online.run
+        echo "[Installer]
+        AgreeToLicense=Yes
+        InstallationPath=/opt/Qt" > qt_installer_script.qs
         ./qt-unified-linux-x64-online.run --script qt_installer_script.qs || true
-        export PATH=/opt/Qt/6.5.3/gcc_64/bin:$PATH
-        echo "Qt installed at /opt/Qt/6.5.3"
+        echo "Qt installed at /opt/Qt"
+        ls /opt/Qt
     - name: Configure CMake (Linux)
       if: matrix.os == 'ubuntu-20.04'
       run: |
+        export PATH=/opt/Qt/6.5.3/gcc_64/bin:$PATH
         cmake -B "${{ github.workspace }}/build" \
           -DCMAKE_BUILD_TYPE=Release \
           -DCMAKE_PREFIX_PATH=/opt/Qt/6.5.3/gcc_64 \
@@ -154,16 +158,3 @@ jobs:
       uses: actions/download-artifact@v4
       with:
         path: artifacts
-
-    - name: Generate Tag Name
-      run: echo "RELEASE_TAG=release-$(date +%Y%m%d%H%M%S)" >> $GITHUB_ENV
-
-    - name: Create GitHub Release
-      uses: softprops/action-gh-release@v1
-      with:
-        tag_name: ${{ env.RELEASE_TAG }}
-        release_name: Forex-Calculator Release
-        draft: false
-        prerelease: false
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
