@@ -37,7 +37,7 @@ jobs:
         sudo apt update
         sudo apt install -y ninja-build build-essential libgl1-mesa-dev libglu1-mesa-dev rsync \
           qt6-base-dev qt6-tools-dev qt6-tools-dev-tools qt6-l10n-tools qt6-declarative-dev \
-          qt6-multimedia-dev qt6-svg-dev qt6-shadertools-dev cmake patchelf
+          qt6-multimedia-dev cmake patchelf
 
     - name: Configure CMake (Ubuntu)
       if: matrix.os == 'ubuntu-latest'
@@ -48,28 +48,18 @@ jobs:
       if: matrix.os == 'ubuntu-latest'
       run: cmake --build build
 
-    - name: Bundle Dependencies (Ubuntu)
+    - name: Package Forex-Calculator (Ubuntu)
       if: matrix.os == 'ubuntu-latest'
       run: |
         mkdir -p package
         cp build/Forex-Calculator package/
 
-        # Bundle shared dependencies
+        # Copy required dependencies (including libpcre.so.3)
         for lib in $(ldd package/Forex-Calculator | awk '{print $3}' | grep -v 'not'); do
-          cp -v "$lib" package/
+          cp -v "$lib" package/ || true
         done
 
-        # Explicitly handle libpcre.so.3
-        if [ ! -f "package/libpcre.so.3" ]; then
-          if [ -f /usr/lib/x86_64-linux-gnu/libpcre.so.3 ]; then
-            cp /usr/lib/x86_64-linux-gnu/libpcre.so.3 package/
-          else
-            echo "Error: libpcre.so.3 not found!"
-            exit 1
-          fi
-        fi
-
-        # Set RPATH to ensure dependencies are found
+        # Set the library path to current directory
         patchelf --set-rpath '$ORIGIN' package/Forex-Calculator
 
         tar -czvf Forex-Calculator_ubuntu.tar.gz -C package .
