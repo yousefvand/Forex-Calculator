@@ -113,50 +113,53 @@ jobs:
 
 
     # ---------------------------
-    # Windows Section (Static Qt)
+    # Windows Section (Improved)
     # ---------------------------
-    - name: Install Dependencies (Windows)
+    - name: Install dependencies (Windows)
       if: matrix.os == 'windows-latest'
       run: |
         choco install ninja cmake mingw
       shell: cmd
 
-    - name: Install Static Qt (Windows)
+    - name: Install Qt (Windows)
+      if: matrix.os == 'windows-latest'
       uses: jurplel/install-qt-action@v4
       with:
         version: '6.5.3'
         host: 'windows'
         target: 'desktop'
         arch: 'win64_mingw'
-        static: true
 
     - name: Configure CMake (Windows)
       if: matrix.os == 'windows-latest'
       run: |
-        cmake -B build -DCMAKE_BUILD_TYPE=Release \
-          -G Ninja \
-          -DCMAKE_PREFIX_PATH=D:\a\Forex-Calculator\Qt\6.5.3\mingw_64 \
-          -DBUILD_SHARED_LIBS=OFF \
-          -S .
+        cmake -B "${{ github.workspace }}\\build" ^
+          -DCMAKE_BUILD_TYPE=Release ^
+          -G Ninja ^
+          -DCMAKE_PREFIX_PATH=D:\\a\\Forex-Calculator\\Qt\\6.5.3\\mingw_64 ^
+          -S "${{ github.workspace }}"
       shell: cmd
 
     - name: Build Forex-Calculator (Windows)
       if: matrix.os == 'windows-latest'
-      run: cmake --build build --config Release
+      run: cmake --build "${{ github.workspace }}\\build" --config Release
       shell: cmd
 
     - name: Package Forex-Calculator (Windows)
       if: matrix.os == 'windows-latest'
       run: |
-        mkdir artifacts
-        Compress-Archive -Path "build/*" -DestinationPath "artifacts/Forex-Calculator_windows.zip"
+        mkdir package
+        cp build/Forex-Calculator.exe package/
+        D:\a\Forex-Calculator\Qt\6.5.3\mingw_64\bin\windeployqt.exe package/Forex-Calculator.exe
+        Compress-Archive -Path package -DestinationPath Forex-Calculator_windows.zip
       shell: pwsh
 
     - name: Upload Artifact (Windows)
+      if: matrix.os == 'windows-latest'
       uses: actions/upload-artifact@v4
       with:
         name: Forex-Calculator_windows
-        path: artifacts/Forex-Calculator_windows.zip
+        path: Forex-Calculator_windows.zip
 
 
   # ---------------------------
@@ -173,24 +176,20 @@ jobs:
       uses: actions/download-artifact@v4
       with:
         path: artifacts
+        merge-multiple: true
 
-    - name: Generate Tag Name
-      id: tag_name
+    - name: Generate Release Tag
+      id: tag
       run: echo "RELEASE_TAG=release-$(date +%Y%m%d%H%M%S)" >> $GITHUB_ENV
 
     - name: Create GitHub Release
-      id: create_release
       uses: softprops/action-gh-release@v1
       with:
         tag_name: ${{ env.RELEASE_TAG }}
-        release_name: Forex-Calculator Release
+        release_name: Forex-Calculator ${{ env.RELEASE_TAG }}
         draft: false
         prerelease: false
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-    - name: Upload Artifacts to Release
-      run: |
-        gh release upload ${{ env.RELEASE_TAG }} artifacts/*
+        files: |
+          artifacts/*
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
