@@ -65,36 +65,35 @@ jobs:
         path: artifacts/Forex-Calculator_ubuntu.tar.gz
 
     # ---------------------------
-    # macOS Section
+    # macOS Section (Replaced)
     # ---------------------------
-    - name: Install Dependencies (macOS)
+    - name: Install dependencies (macOS)
       if: matrix.os == 'macos-latest'
-      run: brew install ninja qt cmake
-      shell: bash
-
+      run: |
+        brew install ninja qt cmake
     - name: Configure CMake (macOS)
       if: matrix.os == 'macos-latest'
       run: |
-        cmake -B build -DCMAKE_BUILD_TYPE=Release -G "Ninja" -S "${{ github.workspace }}"
-      shell: bash
-
+        cmake -B "${{ github.workspace }}/build" \
+          -DCMAKE_BUILD_TYPE=Release \
+          -G "Ninja" \
+          -S "${{ github.workspace }}"
     - name: Build Forex-Calculator (macOS)
       if: matrix.os == 'macos-latest'
-      run: cmake --build build
-      shell: bash
-
+      run: cmake --build "${{ github.workspace }}/build" --config Release
     - name: Package Forex-Calculator (macOS)
       if: matrix.os == 'macos-latest'
       run: |
-        mkdir -p artifacts
-        zip -r artifacts/Forex-Calculator_macos.zip build
-      shell: bash
-
-    - name: Upload Artifact (macOS)
+        mkdir -p package
+        cp -R build/Forex-Calculator.app package/
+        macdeployqt package/Forex-Calculator.app -dmg
+        mv package/*.dmg Forex-Calculator_macos.dmg
+    - name: Upload macOS Artifact
+      if: matrix.os == 'macos-latest'
       uses: actions/upload-artifact@v4
       with:
         name: Forex-Calculator_macos
-        path: artifacts/Forex-Calculator_macos.zip
+        path: "${{ github.workspace }}/Forex-Calculator_macos.dmg"
 
     # ---------------------------
     # Windows Section
