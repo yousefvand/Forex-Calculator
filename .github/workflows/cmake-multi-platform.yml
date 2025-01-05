@@ -41,7 +41,8 @@ jobs:
           libxcb-shape0-dev libxcb-sync-dev libxkbcommon-dev libxkbcommon-x11-dev \
           libssl-dev libxcb-keysyms1-dev libxcb-image0-dev libxcb-util-dev libxcb-icccm4-dev \
           libxcb-render-util0-dev libxcb-xinerama0-dev libxcb-cursor-dev libpulse-dev \
-          libasound2-dev gperf bison flex libdrm-dev mesa-common-dev perl python3
+          libasound2-dev gperf bison flex libdrm-dev mesa-common-dev perl python3 \
+          qttools5-dev qtbase5-dev qtdeclarative5-dev qtchooser qt5-qmake qtbase5-dev-tools
         version: 1.0
 
     - name: Install Dependencies (Ubuntu)
@@ -54,7 +55,8 @@ jobs:
           libxcb-shape0-dev libxcb-sync-dev libxkbcommon-dev libxkbcommon-x11-dev \
           libssl-dev libxcb-keysyms1-dev libxcb-image0-dev libxcb-util-dev libxcb-icccm4-dev \
           libxcb-render-util0-dev libxcb-xinerama0-dev libxcb-cursor-dev libpulse-dev \
-          libasound2-dev gperf bison flex libdrm-dev mesa-common-dev perl python3
+          libasound2-dev gperf bison flex libdrm-dev mesa-common-dev perl python3 \
+          qttools5-dev qtbase5-dev qtdeclarative5-dev qtchooser qt5-qmake qtbase5-dev-tools
 
     - name: Cache Qt Build (Ubuntu)
       if: matrix.os == 'ubuntu-latest'
@@ -106,45 +108,14 @@ jobs:
         path: artifacts/Forex-Calculator_ubuntu.tar.gz
 
     # ---------------------------
-    # macOS Section (Static Qt)
-    # ---------------------------
-    - name: Install Dependencies (macOS)
-      if: matrix.os == 'macos-latest'
-      run: brew install ninja qt
-
-    - name: Configure CMake (macOS)
-      if: matrix.os == 'macos-latest'
-      run: |
-        cmake -B build -DCMAKE_BUILD_TYPE=Release \
-          -G "Ninja" \
-          -DBUILD_SHARED_LIBS=OFF \
-          -DCMAKE_PREFIX_PATH="$(brew --prefix qt)" \
-          -S .
-
-    - name: Build Forex-Calculator (macOS)
-      if: matrix.os == 'macos-latest'
-      run: cmake --build build --config Release
-
-    - name: Package Forex-Calculator (macOS)
-      if: matrix.os == 'macos-latest'
-      run: |
-        mkdir -p artifacts
-        zip -r artifacts/Forex-Calculator_macos.zip build
-
-    - name: Upload Artifact (macOS)
-      uses: actions/upload-artifact@v4
-      with:
-        name: Forex-Calculator_macos
-        path: artifacts/Forex-Calculator_macos.zip
-
-    # ---------------------------
-    # Windows Section (Replaced)
+    # Windows Section (Corrected)
     # ---------------------------
     - name: Install dependencies (Windows)
       if: matrix.os == 'windows-latest'
       run: |
         choco install ninja cmake mingw
       shell: cmd
+
     - name: Install Qt (Windows)
       if: matrix.os == 'windows-latest'
       uses: jurplel/install-qt-action@v4
@@ -153,6 +124,7 @@ jobs:
         host: 'windows'
         target: 'desktop'
         arch: 'win64_mingw'
+
     - name: Configure CMake (Windows)
       if: matrix.os == 'windows-latest'
       run: |
@@ -162,6 +134,7 @@ jobs:
           -DCMAKE_PREFIX_PATH=D:\\a\\Forex-Calculator\\Qt\\6.5.3\\mingw_64 ^
           -S "${{ github.workspace }}"
       shell: cmd
+
     - name: Build Forex-Calculator (Windows)
       if: matrix.os == 'windows-latest'
       run: cmake --build "${{ github.workspace }}\\build" --config Release
