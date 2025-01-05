@@ -28,7 +28,7 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    # --------- Linux Section (Ubuntu 20.04) ---------
+    # --------- Linux Section ---------
     - name: Install dependencies (Linux)
       if: matrix.os == 'ubuntu-20.04'
       run: |
@@ -55,6 +55,7 @@ jobs:
         echo "Exporting Qt Paths"
         echo "/opt/Qt/6.5.3/gcc_64/bin" >> $GITHUB_PATH
         echo "CMAKE_PREFIX_PATH=/opt/Qt/6.5.3/gcc_64/lib/cmake" >> $GITHUB_ENV
+        echo "Qt6_DIR=/opt/Qt/6.5.3/gcc_64/lib/cmake/Qt6" >> $GITHUB_ENV
 
     - name: Verify Qt Installation (Linux)
       if: matrix.os == 'ubuntu-20.04'
@@ -67,6 +68,7 @@ jobs:
         cmake -B "${{ github.workspace }}/build" \
           -DCMAKE_BUILD_TYPE=Release \
           -DCMAKE_PREFIX_PATH=/opt/Qt/6.5.3/gcc_64/lib/cmake \
+          -DQt6_DIR=/opt/Qt/6.5.3/gcc_64/lib/cmake/Qt6 \
           -G "Ninja" \
           -S "${{ github.workspace }}"
 
@@ -189,20 +191,11 @@ jobs:
       run: echo "RELEASE_TAG=release-$(date +%Y%m%d%H%M%S)" >> $GITHUB_ENV
 
     - name: Create GitHub Release
-      id: create_release
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      uses: softprops/action-gh-release@v1
       with:
         tag_name: ${{ env.RELEASE_TAG }}
         release_name: Forex-Calculator Release
         draft: false
         prerelease: false
-
-    - name: Upload Artifacts to Release
-      run: |
-        for file in $(find artifacts -type f); do
-          gh release upload ${{ env.RELEASE_TAG }} "$file"
-        done
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
