@@ -36,8 +36,8 @@ jobs:
       run: |
         sudo apt update
         sudo apt install -y ninja-build build-essential cmake libgl1-mesa-dev libglu1-mesa-dev rsync \
-          qt6-base-dev qt6-tools-dev qt6-l10n-tools qt6-declarative-dev qt6-multimedia-dev libpcre3 \
-          libpcre3-dev patchelf wget fuse libfuse2
+          qt6-base-dev qt6-tools-dev qt6-declarative-dev qt6-multimedia-dev libpcre3-dev patchelf \
+          libxcb-xinerama0 libxcb-cursor-dev
 
     - name: Download linuxdeployqt
       if: matrix.os == 'ubuntu-latest'
@@ -61,15 +61,14 @@ jobs:
         mkdir -p package artifacts
         cp build/Forex-Calculator package/
 
-        # Bundle dependencies
+        # Copy all dependencies
         for lib in $(ldd package/Forex-Calculator | awk '{print $3}' | grep -v 'not'); do
           cp -v "$lib" package/ || true
         done
 
-        # Patch ELF to set rpath
         patchelf --set-rpath '$ORIGIN' package/Forex-Calculator
 
-        # Create launcher script
+        # Run script to launch with bundled libraries
         cat << 'EOF' > package/run_forex_calculator.sh
         #!/bin/bash
         DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -78,7 +77,6 @@ jobs:
         EOF
         chmod +x package/run_forex_calculator.sh
 
-        # Create tar.gz
         tar -czvf artifacts/Forex-Calculator_ubuntu.tar.gz -C package .
 
     - name: Create AppImage (Ubuntu)
@@ -87,8 +85,6 @@ jobs:
         mkdir -p appdir/usr/bin
         cp build/Forex-Calculator appdir/usr/bin/
         linuxdeployqt appdir/usr/bin/Forex-Calculator -appimage
-
-        # Move AppImage to artifacts
         mv Forex-Calculator*.AppImage artifacts/Forex-Calculator.AppImage
 
     - name: Upload Ubuntu Artifacts
@@ -137,7 +133,7 @@ jobs:
     # ---------------------------
     # Windows Section
     # ---------------------------
-    - name: Install Dependencies (Windows)
+    - name: Install dependencies (Windows)
       if: matrix.os == 'windows-latest'
       run: |
         choco install ninja cmake mingw
@@ -155,7 +151,7 @@ jobs:
     - name: Configure CMake (Windows)
       if: matrix.os == 'windows-latest'
       run: |
-        cmake -B build -DCMAKE_BUILD_TYPE=Release -G Ninja -S "${{ github.workspace }}"
+        cmake -B build -DCMAKE_BUILD_TYPE=Release -G Ninja -S "%GITHUB_WORKSPACE%"
       shell: cmd
 
     - name: Build Forex-Calculator (Windows)
@@ -185,25 +181,17 @@ jobs:
     runs-on: ubuntu-latest
     needs: build
     steps:
-    - name: Checkout Code
-      uses: actions/checkout@v4
-
     - name: Download Artifacts
       uses: actions/download-artifact@v4
       with:
         path: artifacts
         merge-multiple: true
 
-    - name: Generate Release Tag
-      run: echo "RELEASE_TAG=release-$(date +%Y%m%d%H%M%S)" >> $GITHUB_ENV
-
     - name: Create GitHub Release
       uses: softprops/action-gh-release@v1
       with:
-        tag_name: ${{ env.RELEASE_TAG }}
-        release_name: Forex-Calculator ${{ env.RELEASE_TAG }}
-        draft: false
-        prerelease: false
+        tag_name: release-${{ github.run_number }}
+        release_name: Forex-Calculator Release ${{ github.run_number }}
         files: artifacts/*
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
