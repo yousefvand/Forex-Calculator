@@ -1,4 +1,4 @@
-name: Build and Release Static Binaries
+name: Build and Release Forex Calculator
 
 on:
   push:
@@ -56,7 +56,8 @@ jobs:
           libssl-dev libxcb-keysyms1-dev libxcb-image0-dev libxcb-util-dev libxcb-icccm4-dev \
           libxcb-render-util0-dev libxcb-xinerama0-dev libxcb-cursor-dev libpulse-dev \
           libasound2-dev gperf bison flex libdrm-dev mesa-common-dev perl python3 \
-          qttools5-dev qtbase5-dev qtdeclarative5-dev qtchooser qt5-qmake qtbase5-dev-tools
+          qttools5-dev qtbase5-dev qtdeclarative5-dev qtchooser qt5-qmake qtbase5-dev-tools \
+          libqt5opengl5-dev libqt5svg5-dev libqt5x11extras5-dev libqt5multimedia5-dev
 
     - name: Cache Qt Build (Ubuntu)
       if: matrix.os == 'ubuntu-latest'
@@ -78,7 +79,7 @@ jobs:
         mkdir build-dynamic
         cd build-dynamic
         ../configure -release -prefix ${{ github.workspace }}/qt-dynamic -opensource -confirm-license \
-        -nomake examples -nomake tests -skip qtwebengine -skip qt3d -openssl-runtime --verbose
+        -nomake examples -nomake tests -skip qtwebengine -openssl-runtime --verbose
         make -j$(nproc)
         make install
 
@@ -130,16 +131,14 @@ jobs:
     - name: Package Forex-Calculator (macOS)
       if: matrix.os == 'macos-latest'
       run: |
-        mkdir -p package
-        cp -R build/Forex-Calculator.app package/
-        macdeployqt package/Forex-Calculator.app -dmg
-        mv package/*.dmg Forex-Calculator_macos.dmg
+        mkdir -p artifacts
+        zip -r artifacts/Forex-Calculator_macos.zip build
 
     - name: Upload macOS Artifact
       uses: actions/upload-artifact@v4
       with:
         name: Forex-Calculator_macos
-        path: "${{ github.workspace }}/Forex-Calculator_macos.dmg"
+        path: artifacts/Forex-Calculator_macos.zip
 
     # ---------------------------
     # Windows Section
