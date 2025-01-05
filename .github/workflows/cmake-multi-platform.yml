@@ -15,9 +15,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-20.04, macos-latest, windows-latest]
+        os: [ubuntu-latest, macos-latest, windows-latest]
         include:
-          - os: ubuntu-20.04
+          - os: ubuntu-latest
             artifact_extension: tar.gz
           - os: macos-latest
             artifact_extension: zip
@@ -30,51 +30,31 @@ jobs:
 
     # --------- Linux Section ---------
     - name: Install dependencies (Linux)
-      if: matrix.os == 'ubuntu-20.04'
+      if: matrix.os == 'ubuntu-latest'
       run: |
-        sudo apt-get update
-        sudo apt-get install -y ninja-build \
-            libgl1-mesa-dev libglu1-mesa-dev cmake rsync \
-            libxkbcommon-x11-0 libxkbcommon-dev patchelf wget
-
-    - name: Install Qt (Linux)
-      if: matrix.os == 'ubuntu-20.04'
-      uses: jurplel/install-qt-action@v4
-      with:
-        version: '6.5.*'
-        host: 'linux'
-        target: 'desktop'
-        arch: 'gcc_64'
-        install-deps: true
-
-    - name: Set Qt Paths (Linux)
-      if: matrix.os == 'ubuntu-20.04'
-      run: |
-        echo "${{ env.Qt6_DIR }}/bin" >> $GITHUB_PATH
-        echo "CMAKE_PREFIX_PATH=${{ env.Qt6_DIR }}/lib/cmake" >> $GITHUB_ENV
-
+        sudo apt update
+        sudo apt install -y ninja-build \
+            qt6-base-dev qt6-tools-dev qt6-tools-dev-tools \
+            qt6-l10n-tools libgl1-mesa-dev libglu1-mesa-dev rsync cmake
     - name: Configure CMake (Linux)
-      if: matrix.os == 'ubuntu-20.04'
+      if: matrix.os == 'ubuntu-latest'
       run: |
         cmake -B "${{ github.workspace }}/build" \
           -DCMAKE_BUILD_TYPE=Release \
           -G "Ninja" \
           -S "${{ github.workspace }}"
-
     - name: Build Forex-Calculator (Linux)
-      if: matrix.os == 'ubuntu-20.04'
+      if: matrix.os == 'ubuntu-latest'
       run: cmake --build "${{ github.workspace }}/build" --config Release
-
     - name: Package Forex-Calculator (Linux)
-      if: matrix.os == 'ubuntu-20.04'
+      if: matrix.os == 'ubuntu-latest'
       run: |
         BUILD_DIR="${{ github.workspace }}/build"
         OUTPUT_DIR="${{ github.workspace }}/artifacts"
         mkdir -p $OUTPUT_DIR
         tar -czvf $OUTPUT_DIR/Forex-Calculator_ubuntu.tar.gz -C $BUILD_DIR .
-
     - name: Upload Linux Artifact
-      if: matrix.os == 'ubuntu-20.04'
+      if: matrix.os == 'ubuntu-latest'
       uses: actions/upload-artifact@v4
       with:
         name: Forex-Calculator_ubuntu
@@ -85,7 +65,6 @@ jobs:
       if: matrix.os == 'macos-latest'
       run: |
         brew install ninja qt cmake
-
     - name: Configure CMake (macOS)
       if: matrix.os == 'macos-latest'
       run: |
@@ -93,11 +72,9 @@ jobs:
           -DCMAKE_BUILD_TYPE=Release \
           -G "Ninja" \
           -S "${{ github.workspace }}"
-
     - name: Build Forex-Calculator (macOS)
       if: matrix.os == 'macos-latest'
       run: cmake --build "${{ github.workspace }}/build" --config Release
-
     - name: Package Forex-Calculator (macOS)
       if: matrix.os == 'macos-latest'
       run: |
@@ -105,7 +82,6 @@ jobs:
         OUTPUT_DIR="${{ github.workspace }}/artifacts"
         mkdir -p $OUTPUT_DIR
         zip -r $OUTPUT_DIR/Forex-Calculator_macos.zip $BUILD_DIR
-
     - name: Upload macOS Artifact
       if: matrix.os == 'macos-latest'
       uses: actions/upload-artifact@v4
@@ -121,16 +97,14 @@ jobs:
         choco install cmake --installargs 'ADD_CMAKE_TO_PATH=System' -y
         choco install mingw -y
       shell: cmd
-
     - name: Install Qt (Windows)
       if: matrix.os == 'windows-latest'
       uses: jurplel/install-qt-action@v4
       with:
-        version: '6.5.*'
+        version: '6.5.3'
         host: 'windows'
         target: 'desktop'
         arch: 'win64_mingw'
-
     - name: Configure CMake (Windows)
       if: matrix.os == 'windows-latest'
       run: |
@@ -140,30 +114,57 @@ jobs:
           -DCMAKE_PREFIX_PATH=D:\\a\\Forex-Calculator\\Qt\\6.5.3\\mingw_64 ^
           -S "${{ github.workspace }}"
       shell: cmd
-
     - name: Build Forex-Calculator (Windows)
       if: matrix.os == 'windows-latest'
       run: cmake --build "${{ github.workspace }}\\build" --config Release
       shell: cmd
+    - name: Package Forex-Calculator (Windows)
+      if: matrix.os == 'windows-latest'
+      run: |
+        $BUILD_DIR="${{ github.workspace }}\\build"
+        $OUTPUT_DIR="${{ github.workspace }}\\artifacts"
+        mkdir $OUTPUT_DIR
+        Compress-Archive -Path "$BUILD_DIR\\*" -DestinationPath "$OUTPUT_DIR\\Forex-Calculator_windows.zip"
+      shell: pwsh
+    - name: Upload Windows Artifact
+      if: matrix.os == 'windows-latest'
+      uses: actions/upload-artifact@v4
+      with:
+        name: Forex-Calculator_windows
+        path: "${{ github.workspace }}\\artifacts\\Forex-Calculator_windows.zip"
 
-    # --------- Release Job ---------
-    release:
-      runs-on: ubuntu-latest
-      needs: build
-      steps:
-      - name: Download Artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: artifacts
+  # --------- Release Job ---------
+  release:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
 
-      - name: Generate Tag Name
-        id: tag_name
-        run: echo "RELEASE_TAG=release-$(date +%Y%m%d%H%M%S)" >> $GITHUB_ENV
+    - name: Download Artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: artifacts
 
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v1
-        with:
-          tag_name: ${{ env.RELEASE_TAG }}
-          files: artifacts/*
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Generate Tag Name
+      id: tag_name
+      run: echo "RELEASE_TAG=release-$(date +%Y%m%d%H%M%S)" >> $GITHUB_ENV
+
+    - name: Create GitHub Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ env.RELEASE_TAG }}
+        release_name: Forex-Calculator Release
+        draft: false
+        prerelease: false
+
+    - name: Upload Artifacts to Release
+      run: |
+        for file in $(find artifacts -type f); do
+          gh release upload ${{ env.RELEASE_TAG }} "$file"
+        done
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
