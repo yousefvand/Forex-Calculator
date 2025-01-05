@@ -38,7 +38,10 @@ jobs:
         sudo apt install -y ninja-build build-essential libgl1-mesa-dev libglu1-mesa-dev rsync libpcre3 \
           libx11-dev libxext-dev libxfixes-dev libxi-dev libxrender-dev libxcb1-dev libx11-xcb-dev \
           libxcb-glx0-dev libxrandr-dev libxcb-randr0-dev libxcb-shm0-dev libxcb-xfixes0-dev \
-          libxcb-shape0-dev libxcb-sync-dev libxkbcommon-dev libxkbcommon-x11-dev
+          libxcb-shape0-dev libxcb-sync-dev libxkbcommon-dev libxkbcommon-x11-dev \
+          libssl-dev libxcb-keysyms1-dev libxcb-image0-dev libxcb-util1-dev libxcb-icccm4-dev \
+          libxcb-render-util0-dev libxcb-xinerama0-dev libxcb-cursor-dev libpulse-dev \
+          libasound2-dev gperf bison flex libdrm-dev mesa-common-dev
 
     - name: Build Qt Static (Ubuntu)
       if: matrix.os == 'ubuntu-latest'
@@ -49,7 +52,8 @@ jobs:
         ./init-repository
         mkdir build-static
         cd build-static
-        ../configure -release -static -prefix ${{ github.workspace }}/qt-static -opensource -confirm-license -nomake tests
+        ../configure -release -static -prefix ${{ github.workspace }}/qt-static -opensource -confirm-license \
+        -nomake examples -nomake tests -skip qtwebengine -skip qt3d -skip qtmultimedia -openssl-linked
         make -j$(nproc)
         make install
 
@@ -133,10 +137,11 @@ jobs:
     - name: Configure CMake (Windows)
       if: matrix.os == 'windows-latest'
       run: |
+        set Qt6_DIR=D:\a\Forex-Calculator\Qt\6.5.3\mingw_64
         cmake -B "${{ github.workspace }}\\build" ^
           -DCMAKE_BUILD_TYPE=Release ^
           -G Ninja ^
-          -DCMAKE_PREFIX_PATH=D:\\a\\Forex-Calculator\\Qt\\6.5.3\\mingw_64 ^
+          -DCMAKE_PREFIX_PATH="%Qt6_DIR%" ^
           -S "${{ github.workspace }}"
       shell: cmd
 
@@ -149,8 +154,9 @@ jobs:
       if: matrix.os == 'windows-latest'
       run: |
         mkdir package
-        cp build/Forex-Calculator.exe package/
-        D:\a\Forex-Calculator\Qt\6.5.3\mingw_64\bin\windeployqt.exe package/Forex-Calculator.exe
+        xcopy /Y /I build\Forex-Calculator.exe package\
+        set PATH=D:\a\Forex-Calculator\Qt\6.5.3\mingw_64\bin;%PATH%
+        windeployqt.exe package\Forex-Calculator.exe
         Compress-Archive -Path package -DestinationPath Forex-Calculator_windows.zip
       shell: pwsh
 
