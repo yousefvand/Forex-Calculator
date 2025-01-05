@@ -108,14 +108,44 @@ jobs:
         path: artifacts/Forex-Calculator_ubuntu.tar.gz
 
     # ---------------------------
-    # Windows Section (Corrected)
+    # macOS Section (Replaced)
+    # ---------------------------
+    - name: Install dependencies (macOS)
+      if: matrix.os == 'macos-latest'
+      run: |
+        brew install ninja qt cmake
+    - name: Configure CMake (macOS)
+      if: matrix.os == 'macos-latest'
+      run: |
+        cmake -B "${{ github.workspace }}/build" \
+          -DCMAKE_BUILD_TYPE=Release \
+          -G "Ninja" \
+          -S "${{ github.workspace }}"
+    - name: Build Forex-Calculator (macOS)
+      if: matrix.os == 'macos-latest'
+      run: cmake --build "${{ github.workspace }}/build" --config Release
+    - name: Package Forex-Calculator (macOS)
+      if: matrix.os == 'macos-latest'
+      run: |
+        mkdir -p package
+        cp -R build/Forex-Calculator.app package/
+        macdeployqt package/Forex-Calculator.app -dmg
+        mv package/*.dmg Forex-Calculator_macos.dmg
+    - name: Upload macOS Artifact
+      if: matrix.os == 'macos-latest'
+      uses: actions/upload-artifact@v4
+      with:
+        name: Forex-Calculator_macos
+        path: "${{ github.workspace }}/Forex-Calculator_macos.dmg"
+
+    # ---------------------------
+    # Windows Section (Retained)
     # ---------------------------
     - name: Install dependencies (Windows)
       if: matrix.os == 'windows-latest'
       run: |
         choco install ninja cmake mingw
       shell: cmd
-
     - name: Install Qt (Windows)
       if: matrix.os == 'windows-latest'
       uses: jurplel/install-qt-action@v4
@@ -124,7 +154,6 @@ jobs:
         host: 'windows'
         target: 'desktop'
         arch: 'win64_mingw'
-
     - name: Configure CMake (Windows)
       if: matrix.os == 'windows-latest'
       run: |
@@ -133,11 +162,6 @@ jobs:
           -G Ninja ^
           -DCMAKE_PREFIX_PATH=D:\\a\\Forex-Calculator\\Qt\\6.5.3\\mingw_64 ^
           -S "${{ github.workspace }}"
-      shell: cmd
-
-    - name: Build Forex-Calculator (Windows)
-      if: matrix.os == 'windows-latest'
-      run: cmake --build "${{ github.workspace }}\\build" --config Release
       shell: cmd
 
   # ---------------------------
