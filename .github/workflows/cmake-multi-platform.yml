@@ -20,7 +20,7 @@ jobs:
           - os: ubuntu-latest
             artifact_extension: tar.gz
           - os: macos-latest
-            artifact_extension: dmg
+            artifact_extension: zip
           - os: windows-latest
             artifact_extension: zip
 
@@ -35,11 +35,11 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y ninja-build \
             qt6-base-dev qt6-tools-dev qt6-tools-dev-tools \
-            qt6-l10n-tools libgl1-mesa-dev libglu1-mesa-dev rsync cmake \
-            libfuse2  # <-- Add this line to install libfuse2
-        wget https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage
+            qt6-l10n-tools libgl1-mesa-dev libglu1-mesa-dev rsync cmake patchelf fuse libfuse2
+        wget -c https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage
         chmod +x linuxdeployqt-continuous-x86_64.AppImage
         mv linuxdeployqt-continuous-x86_64.AppImage /usr/local/bin/linuxdeployqt
+
     - name: Configure CMake (Linux)
       if: matrix.os == 'ubuntu-latest'
       run: |
@@ -50,12 +50,13 @@ jobs:
     - name: Build Forex-Calculator (Linux)
       if: matrix.os == 'ubuntu-latest'
       run: cmake --build "${{ github.workspace }}/build" --config Release
+
     - name: Package Forex-Calculator (Linux)
       if: matrix.os == 'ubuntu-latest'
       run: |
         mkdir -p package
         cp build/Forex-Calculator package/
-        linuxdeployqt package/Forex-Calculator -appimage -bundle-non-qt-libs
+        linuxdeployqt package/Forex-Calculator -appimage -bundle-non-qt-libs || exit 1
         mv Forex-Calculator*.AppImage package/Forex-Calculator.AppImage
         tar -czvf Forex-Calculator_ubuntu.tar.gz -C package .
     - name: Upload Linux Artifact
@@ -68,7 +69,9 @@ jobs:
     # --------- macOS Section ---------
     - name: Install dependencies (macOS)
       if: matrix.os == 'macos-latest'
-      run: brew install ninja qt cmake
+      run: |
+        brew install ninja qt cmake
+
     - name: Configure CMake (macOS)
       if: matrix.os == 'macos-latest'
       run: |
@@ -79,12 +82,13 @@ jobs:
     - name: Build Forex-Calculator (macOS)
       if: matrix.os == 'macos-latest'
       run: cmake --build "${{ github.workspace }}/build" --config Release
+
     - name: Package Forex-Calculator (macOS)
       if: matrix.os == 'macos-latest'
       run: |
         mkdir -p package
         cp -R build/Forex-Calculator.app package/
-        macdeployqt package/Forex-Calculator.app -dmg
+        macdeployqt package/Forex-Calculator.app -dmg || exit 1
         mv package/*.dmg Forex-Calculator_macos.dmg
     - name: Upload macOS Artifact
       if: matrix.os == 'macos-latest'
@@ -122,13 +126,24 @@ jobs:
       if: matrix.os == 'windows-latest'
       run: cmake --build "${{ github.workspace }}\\build" --config Release
       shell: cmd
+
+    - name: Verify Executable (Windows)
+      if: matrix.os == 'windows-latest'
+      run: |
+        if (!(Test-Path "${{ github.workspace }}\\build\\Forex-Calculator.exe")) {
+          echo "Executable not found! Build failed."
+          exit 1
+        }
+      shell: pwsh
+
     - name: Package Forex-Calculator (Windows)
       if: matrix.os == 'windows-latest'
       run: |
         mkdir package
         cp build/Forex-Calculator.exe package/
-        D:\a\Forex-Calculator\Qt\6.5.3\mingw_64\bin\windeployqt.exe ^
-          package/Forex-Calculator.exe
+        echo "Running windeployqt..."
+        D:\a\Forex-Calculator\Qt\6.5.3\mingw_64\bin\windeployqt.exe --verbose 2 ^
+          package/Forex-Calculator.exe || exit 1
         Compress-Archive -Path package -DestinationPath Forex-Calculator_windows.zip
       shell: pwsh
     - name: Upload Windows Artifact
