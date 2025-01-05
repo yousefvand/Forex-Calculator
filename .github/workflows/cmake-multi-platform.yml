@@ -7,7 +7,7 @@ on:
     branches: [main]
 
 permissions:
-  contents: write  # Required for creating releases and uploading artifacts
+  contents: write
 
 jobs:
   build:
@@ -25,72 +25,67 @@ jobs:
             artifact_extension: zip
 
     steps:
-    - name: Checkout Code
+    - name: Checkout code
       uses: actions/checkout@v4
 
     # ---------------------------
-    # Ubuntu Section (Dynamic Build)
+    # Ubuntu Section
     # ---------------------------
     - name: Install Dependencies (Ubuntu)
       if: matrix.os == 'ubuntu-latest'
       run: |
         sudo apt update
-        sudo apt install -y ninja-build build-essential cmake libgl1-mesa-dev libglu1-mesa-dev rsync \
-          qt6-base-dev qt6-tools-dev qt6-declarative-dev qt6-multimedia-dev libpcre3-dev patchelf \
-          libxcb-xinerama0 libxcb-cursor-dev qt6-l10n-tools
+        sudo apt install -y ninja-build build-essential libgl1-mesa-dev libglu1-mesa-dev rsync \
+          qt6-base-dev qt6-tools-dev qt6-tools-dev-tools qt6-l10n-tools qt6-declarative-dev \
+          qt6-multimedia-dev qttools6-dev-tools cmake
+      shell: bash
 
     - name: Configure CMake (Ubuntu)
       if: matrix.os == 'ubuntu-latest'
       run: |
         cmake -B build -DCMAKE_BUILD_TYPE=Release -G "Ninja" -S "${{ github.workspace }}"
+      shell: bash
 
     - name: Build Forex-Calculator (Ubuntu)
       if: matrix.os == 'ubuntu-latest'
       run: cmake --build build
+      shell: bash
 
     - name: Bundle Dependencies (Ubuntu)
       if: matrix.os == 'ubuntu-latest'
       run: |
         mkdir -p package
         cp build/Forex-Calculator package/
-        ldd build/Forex-Calculator | grep "=> /" | awk '{print $3}' | xargs -I '{}' cp -v '{}' package/
-        patchelf --set-rpath '$ORIGIN' package/Forex-Calculator
+        ldd build/Forex-Calculator | grep "=> /" | awk '{print $3}' | xargs -I '{}' cp -v '{}' package/ || true
+        tar -czvf Forex-Calculator_ubuntu.tar.gz -C package .
+      shell: bash
 
-    - name: Create AppImage (Ubuntu)
+    - name: Upload Ubuntu Artifact
       if: matrix.os == 'ubuntu-latest'
-      run: |
-        wget -c https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
-        chmod +x linuxdeploy-x86_64.AppImage
-        ./linuxdeploy-x86_64.AppImage --appdir package --output appimage
-
-    - name: Package Forex-Calculator (Ubuntu)
-      if: matrix.os == 'ubuntu-latest'
-      run: |
-        tar -czvf artifacts/Forex-Calculator_ubuntu.tar.gz -C package .
-        mv Forex-Calculator*.AppImage artifacts/Forex-Calculator.AppImage
-
-    - name: Upload Artifact (Ubuntu)
       uses: actions/upload-artifact@v4
       with:
         name: Forex-Calculator_ubuntu
-        path: artifacts/*
+        path: Forex-Calculator_ubuntu.tar.gz
 
     # ---------------------------
-    # macOS Section (Static Build)
+    # macOS Section
     # ---------------------------
     - name: Install Dependencies (macOS)
       if: matrix.os == 'macos-latest'
       run: |
         brew install ninja qt cmake
+      shell: bash
 
     - name: Configure CMake (macOS)
       if: matrix.os == 'macos-latest'
       run: |
         cmake -B build -DCMAKE_BUILD_TYPE=Release -G "Ninja" -S "${{ github.workspace }}"
+      shell: bash
 
     - name: Build Forex-Calculator (macOS)
       if: matrix.os == 'macos-latest'
       run: cmake --build build
+      shell: bash
 
     - name: Package Forex-Calculator (macOS)
       if: matrix.os == 'macos-latest'
@@ -99,15 +94,17 @@ jobs:
         cp -R build/Forex-Calculator.app package/
         macdeployqt package/Forex-Calculator.app -dmg
         mv package/*.dmg Forex-Calculator_macos.dmg
+      shell: bash
 
-    - name: Upload Artifact (macOS)
+    - name: Upload macOS Artifact
+      if: matrix.os == 'macos-latest'
       uses: actions/upload-artifact@v4
       with:
         name: Forex-Calculator_macos
         path: Forex-Calculator_macos.dmg
 
     # ---------------------------
-    # Windows Section (Static Build)
+    # Windows Section
     # ---------------------------
     - name: Install Dependencies (Windows)
       if: matrix.os == 'windows-latest'
@@ -144,7 +141,8 @@ jobs:
         Compress-Archive -Path package -DestinationPath Forex-Calculator_windows.zip
       shell: pwsh
 
-    - name: Upload Artifact (Windows)
+    - name: Upload Windows Artifact
+      if: matrix.os == 'windows-latest'
       uses: actions/upload-artifact@v4
       with:
         name: Forex-Calculator_windows
@@ -157,7 +155,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: build
     steps:
-    - name: Checkout Code
+    - name: Checkout code
       uses: actions/checkout@v4
 
     - name: Download Artifacts
