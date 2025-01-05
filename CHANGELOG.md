@@ -2,6 +2,10 @@
 
 ============
 
+## 1.0.0
+
+- Public Release
+
 ## 0.0.14
 
 - Implemented:
