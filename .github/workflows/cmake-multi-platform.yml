@@ -35,21 +35,18 @@ jobs:
       if: matrix.os == 'ubuntu-latest'
       run: |
         sudo apt update
-        sudo apt install -y ninja-build build-essential libgl1-mesa-dev libglu1-mesa-dev rsync \
+        sudo apt install -y ninja-build build-essential cmake libgl1-mesa-dev libglu1-mesa-dev rsync \
           qt6-base-dev qt6-tools-dev qt6-tools-dev-tools qt6-l10n-tools qt6-declarative-dev \
-          qt6-multimedia-dev cmake
-      shell: bash
+          qt6-multimedia-dev libpcre3 libpcre3-dev patchelf
 
     - name: Configure CMake (Ubuntu)
       if: matrix.os == 'ubuntu-latest'
       run: |
         cmake -B build -DCMAKE_BUILD_TYPE=Release -G "Ninja" -S "${{ github.workspace }}"
-      shell: bash
 
     - name: Build Forex-Calculator (Ubuntu)
       if: matrix.os == 'ubuntu-latest'
       run: cmake --build build
-      shell: bash
 
     - name: Package Forex-Calculator (Ubuntu)
       if: matrix.os == 'ubuntu-latest'
@@ -57,10 +54,16 @@ jobs:
         mkdir -p package artifacts
         cp build/Forex-Calculator package/
 
-        # Copy required dependencies
+        # Bundle dependencies using ldd
         for lib in $(ldd package/Forex-Calculator | awk '{print $3}' | grep -v 'not'); do
           cp -v "$lib" package/ || true
         done
+        
+        # Copy libpcre if not already present
+        cp -v /lib/x86_64-linux-gnu/libpcre.so.3 package/ || true
+        
+        # Patch ELF to set rpath
+        patchelf --set-rpath '$ORIGIN' package/Forex-Calculator
 
         # Create launcher script
         cat << 'EOF' > package/run_forex_calculator.sh
@@ -71,8 +74,8 @@ jobs:
         EOF
         chmod +x package/run_forex_calculator.sh
 
+        # Package into a tarball
         tar -czvf artifacts/Forex-Calculator_ubuntu.tar.gz -C package .
-      shell: bash
 
     - name: Upload Artifact (Ubuntu)
       uses: actions/upload-artifact@v4
@@ -87,16 +90,16 @@ jobs:
       if: matrix.os == 'macos-latest'
       run: |
         brew install ninja qt cmake
+
     - name: Configure CMake (macOS)
       if: matrix.os == 'macos-latest'
       run: |
-        cmake -B "${{ github.workspace }}/build" \
-          -DCMAKE_BUILD_TYPE=Release \
-          -G "Ninja" \
-          -S "${{ github.workspace }}"
+        cmake -B build -DCMAKE_BUILD_TYPE=Release -G "Ninja" -S "${{ github.workspace }}"
+
     - name: Build Forex-Calculator (macOS)
       if: matrix.os == 'macos-latest'
-      run: cmake --build "${{ github.workspace }}/build" --config Release
+      run: cmake --build build
+
     - name: Package Forex-Calculator (macOS)
       if: matrix.os == 'macos-latest'
       run: |
@@ -104,17 +107,17 @@ jobs:
         cp -R build/Forex-Calculator.app package/
         macdeployqt package/Forex-Calculator.app -dmg
         mv package/*.dmg Forex-Calculator_macos.dmg
-    - name: Upload macOS Artifact
-      if: matrix.os == 'macos-latest'
+
+    - name: Upload Artifact (macOS)
       uses: actions/upload-artifact@v4
       with:
         name: Forex-Calculator_macos
-        path: "${{ github.workspace }}/Forex-Calculator_macos.dmg"
+        path: Forex-Calculator_macos.dmg
 
     # ---------------------------
     # Windows Section
     # ---------------------------
-    - name: Install dependencies (Windows)
+    - name: Install Dependencies (Windows)
       if: matrix.os == 'windows-latest'
       run: |
         choco install ninja cmake mingw
@@ -132,24 +135,20 @@ jobs:
     - name: Configure CMake (Windows)
       if: matrix.os == 'windows-latest'
       run: |
-        cmake -B "${{ github.workspace }}\\build" ^
-          -DCMAKE_BUILD_TYPE=Release ^
-          -G Ninja ^
-          -DCMAKE_PREFIX_PATH=D:\\a\\Forex-Calculator\\Qt\\6.5.3\\mingw_64 ^
-          -S "${{ github.workspace }}"
+        cmake -B build -DCMAKE_BUILD_TYPE=Release -G Ninja -S "${{ github.workspace }}"
       shell: cmd
 
     - name: Build Forex-Calculator (Windows)
       if: matrix.os == 'windows-latest'
-      run: cmake --build "${{ github.workspace }}\\build" --config Release
+      run: cmake --build build
       shell: cmd
 
     - name: Package Forex-Calculator (Windows)
       if: matrix.os == 'windows-latest'
       run: |
         mkdir package
-        cp build/Forex-Calculator.exe package/
-        D:\a\Forex-Calculator\Qt\6.5.3\mingw_64\bin\windeployqt.exe package/Forex-Calculator.exe
+        copy build\Forex-Calculator.exe package\
+        windeployqt.exe package\Forex-Calculator.exe
         Compress-Archive -Path package -DestinationPath Forex-Calculator_windows.zip
       shell: pwsh
 
