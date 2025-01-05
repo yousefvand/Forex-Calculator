@@ -15,9 +15,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-20.04, macos-latest, windows-latest]
+        os: [ubuntu-latest, macos-latest, windows-latest]
         include:
-          - os: ubuntu-20.04
+          - os: ubuntu-latest
             artifact_extension: tar.gz
           - os: macos-latest
             artifact_extension: zip
@@ -28,54 +28,59 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    # --------- Linux Section (AppImage) ---------
-    - name: Install Dependencies (Linux)
-      if: matrix.os == 'ubuntu-20.04'
+    # --------- Linux Section ---------
+    - name: Install dependencies (Linux)
+      if: matrix.os == 'ubuntu-latest'
       run: |
-        sudo apt-get update
-        sudo apt-get install -y ninja-build libgl1-mesa-dev libglu1-mesa-dev \
-            rsync cmake fuse libfuse2 wget xz-utils build-essential
-    - name: Download and Install Qt (Linux)
-      if: matrix.os == 'ubuntu-20.04'
-      run: |
-        wget https://download.qt.io/official_releases/online_installers/qt-unified-linux-x64-online.run
-        chmod +x qt-unified-linux-x64-online.run
-        echo "[Installer]
-        AgreeToLicense=Yes
-        InstallationPath=/opt/Qt" > qt_installer_script.qs
-        sudo ./qt-unified-linux-x64-online.run --script qt_installer_script.qs || true
-        echo "Qt installed at /opt/Qt"
-        ls /opt/Qt
+        sudo apt update
+        sudo apt install -y ninja-build \
+            qt6-base-dev qt6-tools-dev qt6-tools-dev-tools \
+            qt6-l10n-tools libgl1-mesa-dev libglu1-mesa-dev rsync cmake \
+            patchelf fuse libfuse2 libxkbcommon-x11-0
+        # Install linuxdeployqt
+        wget -c https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage
+        chmod +x linuxdeployqt-continuous-x86_64.AppImage
+        sudo mv linuxdeployqt-continuous-x86_64.AppImage /usr/local/bin/linuxdeployqt
     - name: Configure CMake (Linux)
-      if: matrix.os == 'ubuntu-20.04'
+      if: matrix.os == 'ubuntu-latest'
       run: |
-        export PATH=/opt/Qt/6.5.3/gcc_64/bin:$PATH
         cmake -B "${{ github.workspace }}/build" \
           -DCMAKE_BUILD_TYPE=Release \
-          -DCMAKE_PREFIX_PATH=/opt/Qt/6.5.3/gcc_64 \
           -G "Ninja" \
           -S "${{ github.workspace }}"
     - name: Build Forex-Calculator (Linux)
-      if: matrix.os == 'ubuntu-20.04'
+      if: matrix.os == 'ubuntu-latest'
       run: cmake --build "${{ github.workspace }}/build" --config Release
+
     - name: Package Forex-Calculator (Linux)
-      if: matrix.os == 'ubuntu-20.04'
+      if: matrix.os == 'ubuntu-latest'
       run: |
         mkdir -p package
-        cp build/Forex-Calculator package/
-        wget -c https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage
-        chmod +x linuxdeployqt-continuous-x86_64.AppImage
-        ./linuxdeployqt-continuous-x86_64.AppImage package/Forex-Calculator -appimage -bundle-non-qt-libs || exit 1
-        mv Forex-Calculator*.AppImage package/Forex-Calculator.AppImage
+        cp ${{ github.workspace }}/build/Forex-Calculator package/
+        
+        # Check if AppImage bundling works
+        if ! linuxdeployqt package/Forex-Calculator -appimage -bundle-non-qt-libs; then
+          echo "linuxdeployqt failed. Falling back to patchelf..."
+          patchelf --set-rpath '$ORIGIN/' package/Forex-Calculator
+        fi
+        # Rename AppImage if created
+        if [ -f Forex-Calculator*.AppImage ]; then
+          mv Forex-Calculator*.AppImage package/Forex-Calculator.AppImage
+        fi
+        
+        # Fallback: Create tar.gz with direct dependencies
+        ldd package/Forex-Calculator | grep "=> /" | awk '{print $3}' | xargs -I '{}' cp -v '{}' package/ || true
+        
         tar -czvf Forex-Calculator_ubuntu.tar.gz -C package .
+        
     - name: Upload Linux Artifact
-      if: matrix.os == 'ubuntu-20.04'
+      if: matrix.os == 'ubuntu-latest'
       uses: actions/upload-artifact@v4
       with:
         name: Forex-Calculator_ubuntu
-        path: "${{ github.workspace }}/Forex-Calculator_ubuntu.tar.gz"
+        path: Forex-Calculator_ubuntu.tar.gz
 
-    # --------- macOS Section (DMG) ---------
+    # --------- macOS Section ---------
     - name: Install dependencies (macOS)
       if: matrix.os == 'macos-latest'
       run: |
@@ -94,15 +99,14 @@ jobs:
       if: matrix.os == 'macos-latest'
       run: |
         mkdir -p package
-        cp -R build/Forex-Calculator.app package/
-        macdeployqt package/Forex-Calculator.app -dmg
-        mv package/*.dmg Forex-Calculator_macos.dmg
+        cp -R ${{ github.workspace }}/build/Forex-Calculator.app package/
+        hdiutil create -volname "Forex-Calculator" -srcfolder package/ -ov -format UDZO Forex-Calculator_macos.dmg
     - name: Upload macOS Artifact
       if: matrix.os == 'macos-latest'
       uses: actions/upload-artifact@v4
       with:
         name: Forex-Calculator_macos
-        path: "${{ github.workspace }}/Forex-Calculator_macos.dmg"
+        path: Forex-Calculator_macos.dmg
 
     # --------- Windows Section (windeployqt) ---------
     - name: Install dependencies (Windows)
@@ -144,7 +148,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: Forex-Calculator_windows
-        path: "${{ github.workspace }}\\Forex-Calculator_windows.zip"
+        path: Forex-Calculator_windows.zip
 
   # --------- Release Job ---------
   release:
