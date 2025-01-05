@@ -58,17 +58,15 @@ jobs:
         mkdir -p package
         cp ${{ github.workspace }}/build/Forex-Calculator package/
         
-        # Check if AppImage bundling works
         if ! linuxdeployqt package/Forex-Calculator -appimage -bundle-non-qt-libs; then
           echo "linuxdeployqt failed. Falling back to patchelf..."
           patchelf --set-rpath '$ORIGIN/' package/Forex-Calculator
         fi
-        # Rename AppImage if created
+        
         if [ -f Forex-Calculator*.AppImage ]; then
           mv Forex-Calculator*.AppImage package/Forex-Calculator.AppImage
         fi
         
-        # Fallback: Create tar.gz with direct dependencies
         ldd package/Forex-Calculator | grep "=> /" | awk '{print $3}' | xargs -I '{}' cp -v '{}' package/ || true
         
         tar -czvf Forex-Calculator_ubuntu.tar.gz -C package .
@@ -108,7 +106,7 @@ jobs:
         name: Forex-Calculator_macos
         path: Forex-Calculator_macos.dmg
 
-    # --------- Windows Section (windeployqt) ---------
+    # --------- Windows Section ---------
     - name: Install dependencies (Windows)
       if: matrix.os == 'windows-latest'
       run: |
@@ -162,3 +160,21 @@ jobs:
       uses: actions/download-artifact@v4
       with:
         path: artifacts
+
+    - name: Generate Release Tag
+      id: tag
+      run: echo "RELEASE_TAG=release-$(date +%Y%m%d%H%M%S)" >> $GITHUB_ENV
+
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: ${{ env.RELEASE_TAG }}
+        release_name: Forex-Calculator ${{ env.RELEASE_TAG }}
+        draft: false
+        prerelease: false
+        files: |
+          artifacts/Forex-Calculator_ubuntu.tar.gz
+          artifacts/Forex-Calculator_macos.dmg
+          artifacts/Forex-Calculator_windows.zip
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
