@@ -68,16 +68,16 @@ jobs:
         
         ldd package/Forex-Calculator | grep "=> /" | awk '{print $3}' | xargs -I '{}' cp -v '{}' package/ || true
         
-        tar -czvf Forex-Calculator_ubuntu.tar.gz -C package .
+        tar -czvf Forex-Calculator_Linux.tar.gz -C package .
         
     - name: Upload Linux Artifact
       if: matrix.os == 'ubuntu-latest'
       uses: actions/upload-artifact@v4
       with:
-        name: Forex-Calculator_ubuntu
-        path: Forex-Calculator_ubuntu.tar.gz
+        name: Forex-Calculator_Linux
+        path: Forex-Calculator_Linux.tar.gz
 
-    # --------- macOS Section (Updated) ---------
+    # --------- macOS Section ---------
     - name: Install dependencies (macOS)
       if: matrix.os == 'macos-latest'
       run: |
