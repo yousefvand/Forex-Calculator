@@ -29,7 +29,7 @@ jobs:
       uses: actions/checkout@v4
 
     # ---------------------------
-    # Ubuntu Section (Static Qt)
+    # Ubuntu Section (Dynamic Qt)
     # ---------------------------
     - name: Cache APT Packages (Ubuntu)
       if: matrix.os == 'ubuntu-latest'
@@ -61,22 +61,22 @@ jobs:
       id: cache-qt
       uses: actions/cache@v4
       with:
-        path: ${{ github.workspace }}/qt-static
-        key: qt-static-${{ runner.os }}-${{ hashFiles('qt5/qtbase/**') }}
+        path: ${{ github.workspace }}/qt-dynamic
+        key: qt-dynamic-${{ runner.os }}-${{ hashFiles('qt5/qtbase/**') }}
         restore-keys: |
-          qt-static-${{ runner.os }}-
+          qt-dynamic-${{ runner.os }}-
 
-    - name: Build Qt Static (Ubuntu)
+    - name: Build Qt Dynamic (Ubuntu)
       if: matrix.os == 'ubuntu-latest' && steps.cache-qt.outputs.cache-hit != 'true'
       run: |
         git clone https://code.qt.io/qt/qt5.git
         cd qt5
         git checkout v6.8.1
         ./init-repository
-        mkdir build-static
-        cd build-static
-        ../configure -release -static -prefix ${{ github.workspace }}/qt-static -opensource -confirm-license \
-        -nomake examples -nomake tests -skip qtwebengine -skip qt3d -openssl --verbose
+        mkdir build-dynamic
+        cd build-dynamic
+        ../configure -release -prefix ${{ github.workspace }}/qt-dynamic -opensource -confirm-license \
+        -nomake examples -nomake tests -skip qtwebengine -skip qt3d -openssl-runtime --verbose
         make -j$(nproc)
         make install
 
@@ -85,8 +85,8 @@ jobs:
       run: |
         cmake -B build -DCMAKE_BUILD_TYPE=Release \
           -G "Ninja" \
-          -DCMAKE_PREFIX_PATH="${{ github.workspace }}/qt-static" \
-          -DBUILD_SHARED_LIBS=OFF \
+          -DCMAKE_PREFIX_PATH="${{ github.workspace }}/qt-dynamic" \
+          -DBUILD_SHARED_LIBS=ON \
           -S .
 
     - name: Build Forex-Calculator (Ubuntu)
@@ -137,8 +137,38 @@ jobs:
         name: Forex-Calculator_macos
         path: artifacts/Forex-Calculator_macos.zip
 
+    # ---------------------------
+    # Windows Section (Replaced)
+    # ---------------------------
+    - name: Install dependencies (Windows)
+      if: matrix.os == 'windows-latest'
+      run: |
+        choco install ninja cmake mingw
+      shell: cmd
+    - name: Install Qt (Windows)
+      if: matrix.os == 'windows-latest'
+      uses: jurplel/install-qt-action@v4
+      with:
+        version: '6.5.3'
+        host: 'windows'
+        target: 'desktop'
+        arch: 'win64_mingw'
+    - name: Configure CMake (Windows)
+      if: matrix.os == 'windows-latest'
+      run: |
+        cmake -B "${{ github.workspace }}\\build" ^
+          -DCMAKE_BUILD_TYPE=Release ^
+          -G Ninja ^
+          -DCMAKE_PREFIX_PATH=D:\\a\\Forex-Calculator\\Qt\\6.5.3\\mingw_64 ^
+          -S "${{ github.workspace }}"
+      shell: cmd
+    - name: Build Forex-Calculator (Windows)
+      if: matrix.os == 'windows-latest'
+      run: cmake --build "${{ github.workspace }}\\build" --config Release
+      shell: cmd
+
   # ---------------------------
-  # Release Job (After Build)
+  # Publish Section (Release Creation)
   # ---------------------------
   release:
     runs-on: ubuntu-latest
@@ -154,7 +184,6 @@ jobs:
         merge-multiple: true
 
     - name: Generate Release Tag
-      id: tag
       run: echo "RELEASE_TAG=release-$(date +%Y%m%d%H%M%S)" >> $GITHUB_ENV
 
     - name: Create GitHub Release
