@@ -29,7 +29,7 @@ jobs:
       uses: actions/checkout@v4
 
     # ---------------------------
-    # Ubuntu Section (Improved Dependency Handling)
+    # Ubuntu Section (Fixed libpcre3 Dependency)
     # ---------------------------
     - name: Install Dependencies (Ubuntu)
       if: matrix.os == 'ubuntu-latest'
@@ -38,7 +38,10 @@ jobs:
         sudo apt install -y ninja-build build-essential libgl1-mesa-dev libglu1-mesa-dev rsync \
           qt6-base-dev qt6-tools-dev qt6-tools-dev-tools qt6-l10n-tools qt6-declarative-dev \
           qt6-multimedia-dev cmake patchelf fuse libfuse2 libxkbcommon-x11-0 libpcre3 libpcre3-dev
-
+        
+        # Ensure libpcre3 compatibility (symlink if needed)
+        sudo ln -s /usr/lib/x86_64-linux-gnu/libpcre.so.3 /usr/lib/x86_64-linux-gnu/libpcre.so.3 || true
+        
         wget -c https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage
         chmod +x linuxdeployqt-continuous-x86_64.AppImage
         sudo mv linuxdeployqt-continuous-x86_64.AppImage /usr/local/bin/linuxdeployqt
@@ -61,13 +64,13 @@ jobs:
         mkdir -p package
         cp build/Forex-Calculator package/
 
-        # Use linuxdeployqt to bundle Qt dependencies
+        # Bundle dependencies with linuxdeployqt
         if ! linuxdeployqt package/Forex-Calculator -appimage -bundle-non-qt-libs; then
-          echo "linuxdeployqt failed. Falling back to patchelf and manual dependency bundling..."
+          echo "linuxdeployqt failed. Falling back to manual dependency bundling..."
           patchelf --set-rpath '$ORIGIN/' package/Forex-Calculator
         fi
         
-        # Bundle missing dependencies like libpcre
+        # Ensure libpcre3 and other dynamic dependencies are bundled
         ldd package/Forex-Calculator | grep "=> /" | awk '{print $3}' | xargs -I '{}' cp -v '{}' package/ || true
         
         tar -czvf Forex-Calculator_ubuntu.tar.gz -C package .
