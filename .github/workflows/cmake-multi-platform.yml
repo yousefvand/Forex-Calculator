@@ -35,7 +35,11 @@ jobs:
         sudo apt update
         sudo apt install -y ninja-build \
             qt6-base-dev qt6-tools-dev qt6-tools-dev-tools \
-            qt6-l10n-tools libgl1-mesa-dev libglu1-mesa-dev rsync cmake
+            qt6-l10n-tools libgl1-mesa-dev libglu1-mesa-dev rsync cmake patchelf
+        wget -c https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage
+        chmod +x linuxdeployqt-continuous-x86_64.AppImage
+        sudo mv linuxdeployqt-continuous-x86_64.AppImage /usr/local/bin/linuxdeployqt
+
     - name: Configure CMake (Linux)
       if: matrix.os == 'ubuntu-latest'
       run: |
@@ -43,22 +47,30 @@ jobs:
           -DCMAKE_BUILD_TYPE=Release \
           -G "Ninja" \
           -S "${{ github.workspace }}"
+
     - name: Build Forex-Calculator (Linux)
       if: matrix.os == 'ubuntu-latest'
       run: cmake --build "${{ github.workspace }}/build" --config Release
+
     - name: Package Forex-Calculator (Linux)
       if: matrix.os == 'ubuntu-latest'
       run: |
-        BUILD_DIR="${{ github.workspace }}/build"
-        OUTPUT_DIR="${{ github.workspace }}/artifacts"
-        mkdir -p $OUTPUT_DIR
-        tar -czvf $OUTPUT_DIR/Forex-Calculator_ubuntu.tar.gz -C $BUILD_DIR .
+        mkdir -p package
+        cp ${{ github.workspace }}/build/Forex-Calculator package/
+        
+        # Bundle dependencies with linuxdeployqt
+        linuxdeployqt package/Forex-Calculator -appimage -bundle-non-qt-libs
+
+        # Rename and package as tar.gz
+        mv Forex-Calculator*.AppImage package/Forex-Calculator.AppImage
+        tar -czvf Forex-Calculator_ubuntu.tar.gz -C package .
+        
     - name: Upload Linux Artifact
       if: matrix.os == 'ubuntu-latest'
       uses: actions/upload-artifact@v4
       with:
         name: Forex-Calculator_ubuntu
-        path: "${{ github.workspace }}/artifacts/Forex-Calculator_ubuntu.tar.gz"
+        path: Forex-Calculator_ubuntu.tar.gz
 
     # --------- macOS Section ---------
     - name: Install dependencies (macOS)
@@ -78,16 +90,15 @@ jobs:
     - name: Package Forex-Calculator (macOS)
       if: matrix.os == 'macos-latest'
       run: |
-        BUILD_DIR="${{ github.workspace }}/build"
-        OUTPUT_DIR="${{ github.workspace }}/artifacts"
-        mkdir -p $OUTPUT_DIR
-        zip -r $OUTPUT_DIR/Forex-Calculator_macos.zip $BUILD_DIR
+        mkdir -p package
+        cp -R ${{ github.workspace }}/build/Forex-Calculator.app package/
+        hdiutil create -volname "Forex-Calculator" -srcfolder package/ -ov -format UDZO Forex-Calculator_macos.dmg
     - name: Upload macOS Artifact
       if: matrix.os == 'macos-latest'
       uses: actions/upload-artifact@v4
       with:
         name: Forex-Calculator_macos
-        path: "${{ github.workspace }}/artifacts/Forex-Calculator_macos.zip"
+        path: Forex-Calculator_macos.dmg
 
     # --------- Windows Section ---------
     - name: Install dependencies (Windows)
@@ -121,17 +132,18 @@ jobs:
     - name: Package Forex-Calculator (Windows)
       if: matrix.os == 'windows-latest'
       run: |
-        $BUILD_DIR="${{ github.workspace }}\\build"
-        $OUTPUT_DIR="${{ github.workspace }}\\artifacts"
-        mkdir $OUTPUT_DIR
-        Compress-Archive -Path "$BUILD_DIR\\*" -DestinationPath "$OUTPUT_DIR\\Forex-Calculator_windows.zip"
+        mkdir package
+        cp ${{ github.workspace }}\\build\\Forex-Calculator.exe package/
+        D:\\a\\Forex-Calculator\\Qt\\6.5.3\\mingw_64\\bin\\windeployqt.exe ^
+            package/Forex-Calculator.exe
+        Compress-Archive -Path package -DestinationPath Forex-Calculator_windows.zip
       shell: pwsh
     - name: Upload Windows Artifact
       if: matrix.os == 'windows-latest'
       uses: actions/upload-artifact@v4
       with:
         name: Forex-Calculator_windows
-        path: "${{ github.workspace }}\\artifacts\\Forex-Calculator_windows.zip"
+        path: Forex-Calculator_windows.zip
 
   # --------- Release Job ---------
   release:
