@@ -77,8 +77,7 @@ jobs:
         cd build-static
         ../configure -release -static -prefix ${{ github.workspace }}/qt-static -opensource -confirm-license \
         -nomake examples -nomake tests -skip qtwebengine -skip qt3d -skip qtmultimedia -skip qtspeech \
-        -skip qtsensors -skip qtserialbus -skip qtopcua -openssl-linked \
-        -v  # Enable verbose logging for better debugging
+        -skip qtsensors -skip qtserialbus -skip qtopcua -openssl-linked --verbose
         make -j$(nproc)
         make install
 
