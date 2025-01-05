@@ -155,7 +155,7 @@ jobs:
       run: |
         mkdir package
         xcopy /Y /I build\Forex-Calculator.exe package\
-        set PATH=D:\a\Forex-Calculator\Qt\6.5.3\mingw_64\bin;%PATH%
+        $env:PATH="D:\a\Forex-Calculator\Qt\6.5.3\mingw_64\bin;$env:PATH"
         windeployqt.exe package\Forex-Calculator.exe
         Compress-Archive -Path package -DestinationPath Forex-Calculator_windows.zip
       shell: pwsh
