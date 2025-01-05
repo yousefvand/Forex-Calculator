@@ -20,7 +20,7 @@ jobs:
           - os: ubuntu-latest
             artifact_extension: tar.gz
           - os: macos-latest
-            artifact_extension: zip
+            artifact_extension: dmg
           - os: windows-latest
             artifact_extension: zip
 
@@ -29,7 +29,7 @@ jobs:
       uses: actions/checkout@v4
 
     # ---------------------------
-    # Ubuntu Section (Dynamic Qt)
+    # Ubuntu Section
     # ---------------------------
     - name: Install Dependencies (Ubuntu)
       if: matrix.os == 'ubuntu-latest'
@@ -37,26 +37,23 @@ jobs:
         sudo apt update
         sudo apt install -y ninja-build build-essential libgl1-mesa-dev libglu1-mesa-dev rsync \
           qt6-base-dev qt6-tools-dev qt6-tools-dev-tools qt6-l10n-tools qt6-declarative-dev \
-          qt6-multimedia-dev cmake patchelf libpcre3 libpcre3-dev
-      shell: bash
+          qt6-multimedia-dev qt6-svg-dev qt6-shadertools-dev cmake patchelf
 
     - name: Configure CMake (Ubuntu)
       if: matrix.os == 'ubuntu-latest'
       run: |
         cmake -B build -DCMAKE_BUILD_TYPE=Release -G "Ninja" -S "${{ github.workspace }}"
-      shell: bash
 
     - name: Build Forex-Calculator (Ubuntu)
       if: matrix.os == 'ubuntu-latest'
       run: cmake --build build
-      shell: bash
 
     - name: Bundle Dependencies (Ubuntu)
       if: matrix.os == 'ubuntu-latest'
       run: |
         mkdir -p package
         cp build/Forex-Calculator package/
-        
+
         # Bundle shared dependencies
         for lib in $(ldd package/Forex-Calculator | awk '{print $3}' | grep -v 'not'); do
           cp -v "$lib" package/
@@ -66,20 +63,16 @@ jobs:
         if [ ! -f "package/libpcre.so.3" ]; then
           if [ -f /usr/lib/x86_64-linux-gnu/libpcre.so.3 ]; then
             cp /usr/lib/x86_64-linux-gnu/libpcre.so.3 package/
-          elif [ -f /usr/lib/x86_64-linux-gnu/libpcre.so ]; then
-            cp /usr/lib/x86_64-linux-gnu/libpcre.so package/libpcre.so.3
           else
             echo "Error: libpcre.so.3 not found!"
             exit 1
           fi
         fi
 
-        # Set the rpath to current directory for dependencies
+        # Set RPATH to ensure dependencies are found
         patchelf --set-rpath '$ORIGIN' package/Forex-Calculator
 
-        # Package the application
         tar -czvf Forex-Calculator_ubuntu.tar.gz -C package .
-      shell: bash
 
     - name: Upload Artifact (Ubuntu)
       uses: actions/upload-artifact@v4
@@ -92,20 +85,19 @@ jobs:
     # ---------------------------
     - name: Install Dependencies (macOS)
       if: matrix.os == 'macos-latest'
-      run: |
-        brew install ninja qt cmake
-      shell: bash
+      run: brew install ninja qt cmake
 
     - name: Configure CMake (macOS)
       if: matrix.os == 'macos-latest'
       run: |
-        cmake -B build -DCMAKE_BUILD_TYPE=Release -G "Ninja" -S "${{ github.workspace }}"
-      shell: bash
+        cmake -B "${{ github.workspace }}/build" \
+          -DCMAKE_BUILD_TYPE=Release \
+          -G "Ninja" \
+          -S "${{ github.workspace }}"
 
     - name: Build Forex-Calculator (macOS)
       if: matrix.os == 'macos-latest'
-      run: cmake --build build
-      shell: bash
+      run: cmake --build "${{ github.workspace }}/build"
 
     - name: Package Forex-Calculator (macOS)
       if: matrix.os == 'macos-latest'
@@ -114,7 +106,6 @@ jobs:
         cp -R build/Forex-Calculator.app package/
         macdeployqt package/Forex-Calculator.app -dmg
         mv package/*.dmg Forex-Calculator_macos.dmg
-      shell: bash
 
     - name: Upload Artifact (macOS)
       uses: actions/upload-artifact@v4
