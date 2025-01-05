@@ -35,7 +35,7 @@ jobs:
         sudo apt update
         sudo apt install -y ninja-build \
             qt6-base-dev qt6-tools-dev qt6-tools-dev-tools \
-            qt6-l10n-tools libgl1-mesa-dev libglu1-mesa-dev rsync cmake patchelf
+            qt6-l10n-tools libgl1-mesa-dev libglu1-mesa-dev rsync cmake patchelf fuse libfuse2
         wget -c https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage
         chmod +x linuxdeployqt-continuous-x86_64.AppImage
         sudo mv linuxdeployqt-continuous-x86_64.AppImage /usr/local/bin/linuxdeployqt
@@ -58,11 +58,17 @@ jobs:
         mkdir -p package
         cp ${{ github.workspace }}/build/Forex-Calculator package/
         
-        # Bundle dependencies with linuxdeployqt
-        linuxdeployqt package/Forex-Calculator -appimage -bundle-non-qt-libs
+        # Try to bundle dependencies with linuxdeployqt, fallback if FUSE fails
+        linuxdeployqt package/Forex-Calculator -appimage -bundle-non-qt-libs || \
+        linuxdeployqt package/Forex-Calculator --appimage-extract
 
         # Rename and package as tar.gz
-        mv Forex-Calculator*.AppImage package/Forex-Calculator.AppImage
+        if [ -f Forex-Calculator*.AppImage ]; then
+          mv Forex-Calculator*.AppImage package/Forex-Calculator.AppImage
+        else
+          tar -czvf package/Forex-Calculator.AppImage -C squashfs-root/ .
+        fi
+
         tar -czvf Forex-Calculator_ubuntu.tar.gz -C package .
         
     - name: Upload Linux Artifact
