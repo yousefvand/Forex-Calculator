@@ -56,39 +56,13 @@ jobs:
           libssl-dev libxcb-keysyms1-dev libxcb-image0-dev libxcb-util-dev libxcb-icccm4-dev \
           libxcb-render-util0-dev libxcb-xinerama0-dev libxcb-cursor-dev libpulse-dev \
           libasound2-dev gperf bison flex libdrm-dev mesa-common-dev perl python3 \
-          qttools5-dev qtbase5-dev qtdeclarative5-dev qtchooser qt5-qmake qtbase5-dev-tools \
-          libqt5opengl5-dev libqt5svg5-dev libqt5x11extras5-dev libqt5multimedia5-dev
-
-    - name: Cache Qt Build (Ubuntu)
-      if: matrix.os == 'ubuntu-latest'
-      id: cache-qt
-      uses: actions/cache@v4
-      with:
-        path: ${{ github.workspace }}/qt-dynamic
-        key: qt-dynamic-${{ runner.os }}-${{ hashFiles('qt5/qtbase/**') }}
-        restore-keys: |
-          qt-dynamic-${{ runner.os }}-
-
-    - name: Build Qt Dynamic (Ubuntu)
-      if: matrix.os == 'ubuntu-latest' && steps.cache-qt.outputs.cache-hit != 'true'
-      run: |
-        git clone https://code.qt.io/qt/qt5.git
-        cd qt5
-        git checkout v6.8.1
-        ./init-repository
-        mkdir build-dynamic
-        cd build-dynamic
-        ../configure -release -prefix ${{ github.workspace }}/qt-dynamic -opensource -confirm-license \
-        -nomake examples -nomake tests -skip qtwebengine -openssl-runtime --verbose
-        make -j$(nproc)
-        make install
+          qttools5-dev qtbase5-dev qtdeclarative5-dev qtchooser qt5-qmake qtbase5-dev-tools
 
     - name: Configure CMake (Ubuntu)
       if: matrix.os == 'ubuntu-latest'
       run: |
         cmake -B build -DCMAKE_BUILD_TYPE=Release \
           -G "Ninja" \
-          -DCMAKE_PREFIX_PATH="${{ github.workspace }}/qt-dynamic" \
           -DBUILD_SHARED_LIBS=ON \
           -S .
 
@@ -100,7 +74,9 @@ jobs:
       if: matrix.os == 'ubuntu-latest'
       run: |
         mkdir -p artifacts
-        tar -czvf artifacts/Forex-Calculator_ubuntu.tar.gz -C build .
+        cp build/Forex-Calculator artifacts/
+        ldd build/Forex-Calculator | grep "=> /" | awk '{print $3}' | xargs -I '{}' cp '{}' artifacts/
+        tar -czvf artifacts/Forex-Calculator_ubuntu.tar.gz -C artifacts .
 
     - name: Upload Artifact (Ubuntu)
       uses: actions/upload-artifact@v4
@@ -111,7 +87,7 @@ jobs:
     # ---------------------------
     # macOS Section
     # ---------------------------
-    - name: Install dependencies (macOS)
+    - name: Install Dependencies (macOS)
       if: matrix.os == 'macos-latest'
       run: |
         brew install ninja qt cmake
@@ -119,26 +95,27 @@ jobs:
     - name: Configure CMake (macOS)
       if: matrix.os == 'macos-latest'
       run: |
-        cmake -B "${{ github.workspace }}/build" \
-          -DCMAKE_BUILD_TYPE=Release \
+        cmake -B build -DCMAKE_BUILD_TYPE=Release \
           -G "Ninja" \
-          -S "${{ github.workspace }}"
+          -S .
 
     - name: Build Forex-Calculator (macOS)
       if: matrix.os == 'macos-latest'
-      run: cmake --build "${{ github.workspace }}/build" --config Release
+      run: cmake --build build --config Release
 
     - name: Package Forex-Calculator (macOS)
       if: matrix.os == 'macos-latest'
       run: |
-        mkdir -p artifacts
-        zip -r artifacts/Forex-Calculator_macos.zip build
+        mkdir -p package
+        cp -R build/Forex-Calculator.app package/
+        macdeployqt package/Forex-Calculator.app -dmg
+        mv package/*.dmg Forex-Calculator_macos.dmg
 
-    - name: Upload macOS Artifact
+    - name: Upload Artifact (macOS)
       uses: actions/upload-artifact@v4
       with:
         name: Forex-Calculator_macos
-        path: artifacts/Forex-Calculator_macos.zip
+        path: Forex-Calculator_macos.dmg
 
     # ---------------------------
     # Windows Section
@@ -161,7 +138,9 @@ jobs:
     - name: Configure CMake (Windows)
       if: matrix.os == 'windows-latest'
       run: |
-        cmake -B build -DCMAKE_BUILD_TYPE=Release -G Ninja -S .
+        cmake -B build -DCMAKE_BUILD_TYPE=Release \
+          -G Ninja \
+          -S .
       shell: cmd
 
     - name: Build Forex-Calculator (Windows)
@@ -169,16 +148,28 @@ jobs:
       run: cmake --build build --config Release
       shell: cmd
 
+    - name: Package Forex-Calculator (Windows)
+      if: matrix.os == 'windows-latest'
+      run: |
+        mkdir package
+        cp build/Forex-Calculator.exe package/
+        windeployqt.exe package/Forex-Calculator.exe
+        Compress-Archive -Path package -DestinationPath Forex-Calculator_windows.zip
+      shell: pwsh
+
+    - name: Upload Artifact (Windows)
+      uses: actions/upload-artifact@v4
+      with:
+        name: Forex-Calculator_windows
+        path: Forex-Calculator_windows.zip
+
   # ---------------------------
-  # Publish Section
+  # Publish Section (Release Creation)
   # ---------------------------
   release:
     runs-on: ubuntu-latest
     needs: build
     steps:
-    - name: Checkout Code
-      uses: actions/checkout@v4
-
     - name: Download Artifacts
       uses: actions/download-artifact@v4
       with:
