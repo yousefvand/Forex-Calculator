@@ -51,22 +51,23 @@ jobs:
       run: cmake --build build
       shell: bash
 
-    - name: Bundle Qt and Dependencies (Ubuntu)
+    - name: Bundle Dependencies (Ubuntu)
       if: matrix.os == 'ubuntu-latest'
       run: |
         mkdir -p package
         cp build/Forex-Calculator package/
         
-        # Use linuxdeployqt to bundle Qt dependencies
-        wget -c https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage
-        chmod +x linuxdeployqt-continuous-x86_64.AppImage
-        ./linuxdeployqt-continuous-x86_64.AppImage package/Forex-Calculator -appimage -bundle-non-qt-libs || true
-
-        # Bundle libpcre3 manually
-        ldd package/Forex-Calculator | grep 'libpcre' | awk '{print $3}' | xargs -I '{}' cp '{}' package/
-
-        # Patch binary to find libraries in its directory
+        # Find and copy all shared dependencies
+        for lib in $(ldd package/Forex-Calculator | awk '{print $3}' | grep -v 'not'); do
+          cp -v "$lib" package/
+        done
+        
+        # Patch the binary to locate libraries in its own directory
         patchelf --set-rpath '$ORIGIN' package/Forex-Calculator
+
+        # Verify bundling by listing the files
+        echo "Bundled files:"
+        ls -lh package/
 
         tar -czvf Forex-Calculator_ubuntu.tar.gz -C package .
       shell: bash
