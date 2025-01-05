@@ -15,9 +15,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        os: [ubuntu-20.04, macos-latest, windows-latest]
         include:
-          - os: ubuntu-latest
+          - os: ubuntu-20.04
             artifact_extension: tar.gz
           - os: macos-latest
             artifact_extension: zip
@@ -30,7 +30,7 @@ jobs:
 
     # --------- Linux Section ---------
     - name: Install dependencies (Linux)
-      if: matrix.os == 'ubuntu-latest'
+      if: matrix.os == 'ubuntu-20.04'
       run: |
         sudo apt-get update
         sudo apt-get install -y ninja-build \
@@ -41,18 +41,18 @@ jobs:
         mv linuxdeployqt-continuous-x86_64.AppImage /usr/local/bin/linuxdeployqt
 
     - name: Configure CMake (Linux)
-      if: matrix.os == 'ubuntu-latest'
+      if: matrix.os == 'ubuntu-20.04'
       run: |
         cmake -B "${{ github.workspace }}/build" \
           -DCMAKE_BUILD_TYPE=Release \
           -G "Ninja" \
           -S "${{ github.workspace }}"
     - name: Build Forex-Calculator (Linux)
-      if: matrix.os == 'ubuntu-latest'
+      if: matrix.os == 'ubuntu-20.04'
       run: cmake --build "${{ github.workspace }}/build" --config Release
 
     - name: Package Forex-Calculator (Linux)
-      if: matrix.os == 'ubuntu-latest'
+      if: matrix.os == 'ubuntu-20.04'
       run: |
         mkdir -p package
         cp build/Forex-Calculator package/
@@ -60,7 +60,7 @@ jobs:
         mv Forex-Calculator*.AppImage package/Forex-Calculator.AppImage
         tar -czvf Forex-Calculator_ubuntu.tar.gz -C package .
     - name: Upload Linux Artifact
-      if: matrix.os == 'ubuntu-latest'
+      if: matrix.os == 'ubuntu-20.04'
       uses: actions/upload-artifact@v4
       with:
         name: Forex-Calculator_ubuntu
@@ -127,23 +127,12 @@ jobs:
       run: cmake --build "${{ github.workspace }}\\build" --config Release
       shell: cmd
 
-    - name: Verify Executable (Windows)
-      if: matrix.os == 'windows-latest'
-      run: |
-        if (!(Test-Path "${{ github.workspace }}\\build\\Forex-Calculator.exe")) {
-          echo "Executable not found! Build failed."
-          exit 1
-        }
-      shell: pwsh
-
     - name: Package Forex-Calculator (Windows)
       if: matrix.os == 'windows-latest'
       run: |
         mkdir package
         cp build/Forex-Calculator.exe package/
-        echo "Running windeployqt..."
-        D:\a\Forex-Calculator\Qt\6.5.3\mingw_64\bin\windeployqt.exe --verbose 2 ^
-          package/Forex-Calculator.exe || exit 1
+        D:\a\Forex-Calculator\Qt\6.5.3\mingw_64\bin\windeployqt.exe package/Forex-Calculator.exe || exit 1
         Compress-Archive -Path package -DestinationPath Forex-Calculator_windows.zip
       shell: pwsh
     - name: Upload Windows Artifact
@@ -155,7 +144,7 @@ jobs:
 
   # --------- Release Job ---------
   release:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     needs: build
     steps:
     - name: Checkout code
