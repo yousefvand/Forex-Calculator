@@ -18,16 +18,23 @@ jobs:
     - name: Checkout Code
       uses: actions/checkout@v4
 
+    - name: Cache Qt Installation
+      uses: actions/cache@v3
+      with:
+        path: /opt/Qt/6.5.3/gcc_64
+        key: qt-cache-${{ runner.os }}-6.5.3
+
     - name: Install Dependencies (Linux)
       run: |
         apt update
         apt install -y ninja-build build-essential libgl1-mesa-dev libglu1-mesa-dev \
                         mesa-common-dev libxkbcommon-dev cmake fuse libfuse2 patchelf
-        wget -c https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage
+        wget -q https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage
         chmod +x linuxdeployqt-continuous-x86_64.AppImage
         mv linuxdeployqt-continuous-x86_64.AppImage /usr/local/bin/linuxdeployqt
         
     - name: Download and Install Qt6 (Linux)
+      if: steps.cache.outputs.cache-hit != 'true'
       run: |
         wget https://download.qt.io/official_releases/qt/6.5/6.5.3/qt-opensource-linux-x64-6.5.3.run
         chmod +x qt-opensource-linux-x64-6.5.3.run
@@ -40,13 +47,13 @@ jobs:
           -DCMAKE_PREFIX_PATH=/opt/Qt/6.5.3/gcc_64 -S .
 
     - name: Build Forex-Calculator (Linux)
-      run: cmake --build build --config Release
+      run: cmake --build build --config Release --parallel $(nproc)
 
     - name: Package with linuxdeployqt
       run: |
         mkdir -p package
         cp build/Forex-Calculator package/
-        linuxdeployqt package/Forex-Calculator -appimage -bundle-non-qt-libs
+        linuxdeployqt package/Forex-Calculator -appimage
         mv Forex-Calculator*.AppImage package/Forex-Calculator.AppImage
         tar -czvf Forex-Calculator_Linux.tar.gz -C package .
 
@@ -97,7 +104,7 @@ jobs:
         choco install ninja cmake mingw
       shell: cmd
 
-    - name: Install Static Qt (Windows)
+    - name: Install Qt (Windows)
       uses: jurplel/install-qt-action@v4
       with:
         version: '6.5.3'
@@ -117,18 +124,12 @@ jobs:
       run: cmake --build build --config Release
       shell: cmd
 
-    - name: Package with windeployqt
+    - name: Package Forex-Calculator (Windows)
       run: |
-        if (Test-Path "build/Forex-Calculator.exe") {
-          mkdir package
-          cp build/Forex-Calculator.exe package/
-          D:\a\Forex-Calculator\Qt\6.5.3\mingw_64\bin\windeployqt.exe ^
-            package/Forex-Calculator.exe
-          Compress-Archive -Path package -DestinationPath Forex-Calculator_Windows.zip
-        } else {
-          echo "Build failed or executable not found!"
-          exit 1
-        }
+        mkdir package
+        cp build/Forex-Calculator.exe package/
+        D:\a\Forex-Calculator\Qt\6.5.3\mingw_64\bin\windeployqt.exe package/Forex-Calculator.exe
+        Compress-Archive -Path package -DestinationPath Forex-Calculator_Windows.zip
       shell: pwsh
 
     - name: Upload Artifact (Windows)
