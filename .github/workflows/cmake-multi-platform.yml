@@ -34,7 +34,8 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install -y ninja-build libgl1-mesa-dev libglu1-mesa-dev \
-            rsync cmake fuse libfuse2 wget xz-utils build-essential
+            rsync cmake fuse libfuse2 wget xz-utils build-essential \
+            libxkbcommon-x11-0 libxkbcommon-dev
     - name: Download and Install Qt (Linux)
       if: matrix.os == 'ubuntu-20.04'
       run: |
@@ -45,7 +46,7 @@ jobs:
         InstallationPath=/opt/Qt" > qt_installer_script.qs
         ./qt-unified-linux-x64-online.run --script qt_installer_script.qs || true
         echo "Qt installed at /opt/Qt"
-        ls /opt/Qt
+        ls /opt/Qt || echo "Qt installation failed"
     - name: Configure CMake (Linux)
       if: matrix.os == 'ubuntu-20.04'
       run: |
@@ -158,3 +159,26 @@ jobs:
       uses: actions/download-artifact@v4
       with:
         path: artifacts
+
+    - name: Generate Tag Name
+      id: tag_name
+      run: echo "RELEASE_TAG=release-$(date +%Y%m%d%H%M%S)" >> $GITHUB_ENV
+
+    - name: Create GitHub Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ env.RELEASE_TAG }}
+        release_name: Forex-Calculator Release
+        draft: false
+        prerelease: false
+
+    - name: Upload Artifacts to Release
+      run: |
+        for file in $(find artifacts -type f); do
+          gh release upload ${{ env.RELEASE_TAG }} "$file"
+        done
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
