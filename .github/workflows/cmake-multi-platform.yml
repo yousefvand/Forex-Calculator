@@ -54,7 +54,7 @@ jobs:
     - name: Package Forex-Calculator (Ubuntu)
       if: matrix.os == 'ubuntu-latest'
       run: |
-        mkdir -p package
+        mkdir -p package artifacts
         cp build/Forex-Calculator package/
 
         # Copy required dependencies
