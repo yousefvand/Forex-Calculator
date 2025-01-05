@@ -76,8 +76,7 @@ jobs:
         mkdir build-static
         cd build-static
         ../configure -release -static -prefix ${{ github.workspace }}/qt-static -opensource -confirm-license \
-        -nomake examples -nomake tests -skip qtwebengine -skip qt3d -skip qtmultimedia -skip qtspeech \
-        -skip qtsensors -skip qtserialbus -skip qtopcua -openssl-linked --verbose
+        -nomake examples -nomake tests -skip qtwebengine -skip qt3d -openssl --verbose
         make -j$(nproc)
         make install
 
