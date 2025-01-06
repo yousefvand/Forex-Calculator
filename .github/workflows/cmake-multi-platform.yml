@@ -36,17 +36,18 @@ jobs:
       run: |
         sudo apt update
         sudo apt install -y wget ninja-build cmake libgl1-mesa-dev libglu1-mesa-dev patchelf fuse libfuse2
-        
+    
     - name: Download and Install Qt6 (Ubuntu)
       if: matrix.os == 'ubuntu-22.04'
       run: |
-        wget https://download.qt.io/official_releases/qt/6.5/6.5.3/qt-opensource-linux-x64-6.5.3.run
-        chmod +x qt-opensource-linux-x64-6.5.3.run
-        sudo ./qt-opensource-linux-x64-6.5.3.run --script qt-noninteractive.qs
+        QT_VERSION="6.6.0"  # Set this to the latest available version
+        wget https://download.qt.io/official_releases/qt/${QT_VERSION%.*}/$QT_VERSION/qt-opensource-linux-x64-$QT_VERSION.run || exit 1
+        chmod +x qt-opensource-linux-x64-$QT_VERSION.run
+        sudo ./qt-opensource-linux-x64-$QT_VERSION.run --script qt-noninteractive.qs
         
         echo "Qt6 installed in /opt/Qt"
-        echo "/opt/Qt/6.5.3/gcc_64/bin" >> $GITHUB_PATH
-        export Qt6_DIR="/opt/Qt/6.5.3/gcc_64/lib/cmake"
+        echo "/opt/Qt/$QT_VERSION/gcc_64/bin" >> $GITHUB_PATH
+        export Qt6_DIR="/opt/Qt/$QT_VERSION/gcc_64/lib/cmake"
 
     - name: Build and Package AppImage (Ubuntu)
       if: matrix.os == 'ubuntu-22.04'
@@ -114,7 +115,7 @@ jobs:
       if: matrix.os == 'windows-latest'
       uses: jurplel/install-qt-action@v4
       with:
-        version: '6.5.3'
+        version: '6.6.0'
         host: 'windows'
         target: 'desktop'
         arch: 'win64_mingw'
