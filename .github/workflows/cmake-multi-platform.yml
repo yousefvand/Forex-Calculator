@@ -31,13 +31,24 @@ jobs:
     # ---------------------------
     # Ubuntu Section (AppImage)
     # ---------------------------
-    - name: Install Dependencies (Ubuntu)
+    - name: Remove Conflicting Packages (Ubuntu)
       if: matrix.os == 'ubuntu-latest'
       run: |
         sudo apt update
-        sudo apt install -y docker.io
+        sudo apt remove -y containerd
 
-    - name: Build AppImage (Ubuntu)
+    - name: Install Docker and Dependencies (Ubuntu)
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        sudo apt update
+        sudo apt install -y \
+          apt-transport-https ca-certificates curl gnupg-agent software-properties-common
+        curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+        echo "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu focal stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+        sudo apt update
+        sudo apt install -y docker-ce docker-ce-cli containerd.io
+
+    - name: Build AppImage in Docker (Ubuntu)
       if: matrix.os == 'ubuntu-latest'
       run: |
         docker run --rm \
