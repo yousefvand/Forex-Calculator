@@ -29,23 +29,18 @@ jobs:
       uses: actions/checkout@v4
 
     # ---------------------------
-    # Ubuntu (AppImage)
+    # Ubuntu (AppImage using Docker)
     # ---------------------------
-    - name: Set up Docker for AppImage (Ubuntu)
+    - name: Build AppImage in Docker (Ubuntu)
       if: matrix.os == 'ubuntu-latest'
       run: |
         docker run --rm \
           -v ${{ github.workspace }}:/workspace \
           -w /workspace \
-          ubuntu:20.04 \
+          archlinux:base-devel \
           bash -c "
-          apt-get update && \
-          apt-get install -y software-properties-common && \
-          add-apt-repository ppa:qt6-team/qt6 && \
-          apt-get update && \
-          apt-get install -y qt6-base-dev qt6-tools-dev cmake ninja-build \
-          qt6-multimedia-dev qt6-svg-dev qt6-declarative-dev qt6-shadertools-dev \
-          libgl1-mesa-dev libglu1-mesa-dev rsync patchelf fuse libfuse2 && \
+          pacman -Syu --noconfirm && \
+          pacman -S --noconfirm qt6-base qt6-declarative qt6-multimedia qt6-svg qt6-shadertools ninja cmake patchelf && \
           wget -c https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage && \
           chmod +x linuxdeployqt-continuous-x86_64.AppImage && \
           mv linuxdeployqt-continuous-x86_64.AppImage /usr/local/bin/linuxdeployqt && \
@@ -65,7 +60,7 @@ jobs:
         path: Forex-Calculator.AppImage
 
     # ---------------------------
-    # macOS
+    # macOS Section
     # ---------------------------
     - name: Install dependencies (macOS)
       if: matrix.os == 'macos-latest'
@@ -93,7 +88,7 @@ jobs:
         path: Forex-Calculator_macos.dmg
 
     # ---------------------------
-    # Windows
+    # Windows Section
     # ---------------------------
     - name: Install dependencies (Windows)
       if: matrix.os == 'windows-latest'
