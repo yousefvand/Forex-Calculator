@@ -35,17 +35,19 @@ jobs:
       if: matrix.os == 'ubuntu-22.04'
       run: |
         sudo apt update
-        sudo apt install -y ninja-build cmake patchelf fuse libfuse2 libxkbcommon-x11-0 libgl1-mesa-dev libglu1-mesa-dev wget curl \
-          libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-randr0 libxcb-render-util0 libxcb-shape0 libxcb-xfixes0 libxcb-xinerama0 libxcb-sync1 libxcb-xkb1 x11-xserver-utils
+        sudo apt install -y ninja-build cmake patchelf fuse libfuse2 libxkbcommon-x11-0 libgl1-mesa-dev libglu1-mesa-dev \
+          libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-randr0 libxcb-render-util0 libxcb-shape0 libxcb-xfixes0 \
+          libxcb-xinerama0 libxcb-sync1 libxcb-xkb1 x11-xserver-utils wget curl xcb libxcb1-dev build-essential
 
     - name: Install Qt6 (Ubuntu)
       if: matrix.os == 'ubuntu-22.04'
       run: |
+        QT_VERSION="6.6.1"
         wget https://download.qt.io/official_releases/online_installers/qt-unified-linux-x64-online.run
         chmod +x qt-unified-linux-x64-online.run
-        sudo ./qt-unified-linux-x64-online.run --script qt-noninteractive.qs || sudo ./qt-unified-linux-x64-online.run --no-sandbox --script qt-noninteractive.qs
-        echo "/opt/Qt/6.6.1/gcc_64/bin" >> $GITHUB_PATH
-        export Qt6_DIR="/opt/Qt/6.6.1/gcc_64/lib/cmake"
+        sudo QT_QPA_PLATFORM=offscreen ./qt-unified-linux-x64-online.run --script qt-noninteractive.qs || sudo QT_QPA_PLATFORM=offscreen ./qt-unified-linux-x64-online.run --no-sandbox --script qt-noninteractive.qs
+        echo "/opt/Qt/${QT_VERSION}/gcc_64/bin" >> $GITHUB_PATH
+        export Qt6_DIR="/opt/Qt/${QT_VERSION}/gcc_64/lib/cmake"
 
     - name: Build with CMake (Ubuntu)
       if: matrix.os == 'ubuntu-22.04'
