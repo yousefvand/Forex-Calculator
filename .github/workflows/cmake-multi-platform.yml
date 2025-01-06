@@ -40,7 +40,7 @@ jobs:
           archlinux:base-devel \
           bash -c "
           pacman -Syu --noconfirm && \
-          pacman -S --noconfirm qt6-base qt6-declarative qt6-multimedia qt6-svg qt6-shadertools ninja cmake patchelf && \
+          pacman -S --noconfirm qt6-base qt6-declarative qt6-multimedia qt6-svg qt6-shadertools ninja cmake patchelf wget && \
           wget -c https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage && \
           chmod +x linuxdeployqt-continuous-x86_64.AppImage && \
           mv linuxdeployqt-continuous-x86_64.AppImage /usr/local/bin/linuxdeployqt && \
