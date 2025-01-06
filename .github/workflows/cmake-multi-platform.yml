@@ -31,14 +31,22 @@ jobs:
     # ---------------------------
     # Ubuntu Section (Qt6 AppImage)
     # ---------------------------
-    - name: Install Qt6 and Dependencies (Ubuntu)
+    - name: Install Dependencies (Ubuntu)
       if: matrix.os == 'ubuntu-22.04'
       run: |
         sudo apt update
-        sudo apt install -y \
-          qt6-base-dev qt6-tools-dev qt6-tools-dev-tools qt6-l10n-tools \
-          qt6-declarative-dev qt6-multimedia-dev qt6-shadertools-dev \
-          libgl1-mesa-dev libglu1-mesa-dev ninja-build cmake patchelf fuse libfuse2 wget
+        sudo apt install -y wget ninja-build cmake libgl1-mesa-dev libglu1-mesa-dev patchelf fuse libfuse2
+        
+    - name: Download and Install Qt6 (Ubuntu)
+      if: matrix.os == 'ubuntu-22.04'
+      run: |
+        wget https://download.qt.io/official_releases/qt/6.5/6.5.3/qt-opensource-linux-x64-6.5.3.run
+        chmod +x qt-opensource-linux-x64-6.5.3.run
+        sudo ./qt-opensource-linux-x64-6.5.3.run --script qt-noninteractive.qs
+        
+        echo "Qt6 installed in /opt/Qt"
+        echo "/opt/Qt/6.5.3/gcc_64/bin" >> $GITHUB_PATH
+        export Qt6_DIR="/opt/Qt/6.5.3/gcc_64/lib/cmake"
 
     - name: Build and Package AppImage (Ubuntu)
       if: matrix.os == 'ubuntu-22.04'
@@ -47,7 +55,7 @@ jobs:
         chmod +x linuxdeployqt-continuous-x86_64.AppImage
         sudo mv linuxdeployqt-continuous-x86_64.AppImage /usr/local/bin/linuxdeployqt
         
-        cmake -B build -DCMAKE_BUILD_TYPE=Release -G Ninja -S .
+        cmake -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=$Qt6_DIR -G Ninja -S .
         cmake --build build
         
         mkdir -p package
