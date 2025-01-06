@@ -141,32 +141,32 @@ jobs:
         name: Forex-Calculator_windows
         path: Forex-Calculator_windows.zip
 
-    # ---------------------------
-    # Publish Section
-    # ---------------------------
-    release:
-      runs-on: ubuntu-latest
-      needs: build
-      steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
+  # ---------------------------
+  # Publish Section
+  # ---------------------------
+  release:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
 
-      - name: Download Artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: artifacts
-          merge-multiple: true
+    - name: Download Artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: artifacts
+        merge-multiple: true
 
-      - name: Generate Release Tag
-        run: echo "RELEASE_TAG=release-$(date +%Y%m%d%H%M%S)" >> $GITHUB_ENV
+    - name: Generate Release Tag
+      run: echo "RELEASE_TAG=release-$(date +%Y%m%d%H%M%S)" >> $GITHUB_ENV
 
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v1
-        with:
-          tag_name: ${{ env.RELEASE_TAG }}
-          release_name: Forex-Calculator ${{ env.RELEASE_TAG }}
-          draft: false
-          prerelease: false
-          files: artifacts/*
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: ${{ env.RELEASE_TAG }}
+        release_name: Forex-Calculator ${{ env.RELEASE_TAG }}
+        draft: false
+        prerelease: false
+        files: artifacts/*
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
