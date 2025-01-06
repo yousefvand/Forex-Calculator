@@ -40,6 +40,9 @@ jobs:
           ubuntu:20.04 \
           bash -c "
           apt-get update && \
+          apt-get install -y software-properties-common && \
+          add-apt-repository ppa:qt6-team/qt6 && \
+          apt-get update && \
           apt-get install -y qt6-base-dev qt6-tools-dev cmake ninja-build \
           qt6-multimedia-dev qt6-svg-dev qt6-declarative-dev qt6-shadertools-dev \
           libgl1-mesa-dev libglu1-mesa-dev rsync patchelf fuse libfuse2 && \
