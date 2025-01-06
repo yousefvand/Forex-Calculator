@@ -15,9 +15,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        os: [ubuntu-22.04, macos-latest, windows-latest]
         include:
-          - os: ubuntu-latest
+          - os: ubuntu-22.04
             artifact_extension: AppImage
           - os: macos-latest
             artifact_extension: dmg
@@ -29,45 +29,32 @@ jobs:
       uses: actions/checkout@v4
 
     # ---------------------------
-    # Ubuntu Section (AppImage)
+    # Ubuntu Section (Qt6 AppImage)
     # ---------------------------
-    - name: Remove Conflicting Packages (Ubuntu)
-      if: matrix.os == 'ubuntu-latest'
-      run: |
-        sudo apt update
-        sudo apt remove -y containerd
-
-    - name: Install Docker and Dependencies (Ubuntu)
-      if: matrix.os == 'ubuntu-latest'
+    - name: Install Qt6 and Dependencies (Ubuntu)
+      if: matrix.os == 'ubuntu-22.04'
       run: |
         sudo apt update
         sudo apt install -y \
-          apt-transport-https ca-certificates curl gnupg-agent software-properties-common
-        curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
-        echo "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu focal stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-        sudo apt update
-        sudo apt install -y docker-ce docker-ce-cli containerd.io
+          qt6-base-dev qt6-tools-dev qt6-tools-dev-tools qt6-l10n-tools \
+          qt6-declarative-dev qt6-multimedia-dev qt6-shadertools-dev \
+          libgl1-mesa-dev libglu1-mesa-dev ninja-build cmake patchelf fuse libfuse2 wget
 
-    - name: Build AppImage in Docker (Ubuntu)
-      if: matrix.os == 'ubuntu-latest'
+    - name: Build and Package AppImage (Ubuntu)
+      if: matrix.os == 'ubuntu-22.04'
       run: |
-        docker run --rm \
-          -v ${{ github.workspace }}:/workspace \
-          ubuntu:20.04 \
-          /bin/bash -c "
-            apt update && apt install -y \
-              qt6-base-dev qt6-tools-dev qt6-multimedia-dev qt6-declarative-dev \
-              libgl1-mesa-dev libglu1-mesa-dev ninja-build cmake patchelf fuse libfuse2 wget \
-              && wget -c https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage \
-              && chmod +x linuxdeployqt-continuous-x86_64.AppImage \
-              && mv linuxdeployqt-continuous-x86_64.AppImage /usr/local/bin/linuxdeployqt \
-              && mkdir -p /workspace/package \
-              && cmake -B /workspace/build -DCMAKE_BUILD_TYPE=Release -G Ninja -S /workspace \
-              && cmake --build /workspace/build \
-              && cp /workspace/build/Forex-Calculator /workspace/package/ \
-              && linuxdeployqt /workspace/package/Forex-Calculator -appimage -bundle-non-qt-libs \
-              && mv /workspace/Forex-Calculator*.AppImage /workspace/Forex-Calculator.AppImage
-          "
+        wget -c https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage
+        chmod +x linuxdeployqt-continuous-x86_64.AppImage
+        sudo mv linuxdeployqt-continuous-x86_64.AppImage /usr/local/bin/linuxdeployqt
+        
+        cmake -B build -DCMAKE_BUILD_TYPE=Release -G Ninja -S .
+        cmake --build build
+        
+        mkdir -p package
+        cp build/Forex-Calculator package/
+        
+        linuxdeployqt package/Forex-Calculator -appimage -bundle-non-qt-libs
+        mv Forex-Calculator*.AppImage Forex-Calculator.AppImage
 
     - name: Upload Ubuntu Artifact
       uses: actions/upload-artifact@v4
