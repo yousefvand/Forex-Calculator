@@ -18,9 +18,9 @@ jobs:
         os: [ubuntu-latest, macos-latest, windows-latest]
         include:
           - os: ubuntu-latest
-            artifact_extension: tar.gz
+            artifact_extension: AppImage
           - os: macos-latest
-            artifact_extension: zip
+            artifact_extension: dmg
           - os: windows-latest
             artifact_extension: zip
 
@@ -35,29 +35,28 @@ jobs:
       if: matrix.os == 'ubuntu-latest'
       run: |
         sudo apt update
-        sudo apt install -y ninja-build build-essential libgl1-mesa-dev libglu1-mesa-dev \
-          qt6-base-dev qt6-tools-dev qt6-tools-dev-tools qt6-l10n-tools \
-          qt6-multimedia-dev qt6-declarative-dev cmake patchelf fuse libfuse2 wget libxkbcommon-dev
-        wget -c https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage
-        chmod +x linuxdeployqt-continuous-x86_64.AppImage
-        sudo mv linuxdeployqt-continuous-x86_64.AppImage /usr/local/bin/linuxdeployqt
+        sudo apt install -y docker.io
 
-    - name: Configure CMake (Ubuntu)
+    - name: Build AppImage (Ubuntu)
       if: matrix.os == 'ubuntu-latest'
       run: |
-        cmake -B build -DCMAKE_BUILD_TYPE=Release -G "Ninja" -S "${{ github.workspace }}"
-
-    - name: Build Forex-Calculator (Ubuntu)
-      if: matrix.os == 'ubuntu-latest'
-      run: cmake --build build
-
-    - name: Package Forex-Calculator (Ubuntu)
-      if: matrix.os == 'ubuntu-latest'
-      run: |
-        mkdir -p package
-        cp build/Forex-Calculator package/
-        linuxdeployqt package/Forex-Calculator -appimage -bundle-non-qt-libs
-        mv Forex-Calculator*.AppImage Forex-Calculator.AppImage
+        docker run --rm \
+          -v ${{ github.workspace }}:/workspace \
+          ubuntu:20.04 \
+          /bin/bash -c "
+            apt update && apt install -y \
+              qt6-base-dev qt6-tools-dev qt6-multimedia-dev qt6-declarative-dev \
+              libgl1-mesa-dev libglu1-mesa-dev ninja-build cmake patchelf fuse libfuse2 wget \
+              && wget -c https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage \
+              && chmod +x linuxdeployqt-continuous-x86_64.AppImage \
+              && mv linuxdeployqt-continuous-x86_64.AppImage /usr/local/bin/linuxdeployqt \
+              && mkdir -p /workspace/package \
+              && cmake -B /workspace/build -DCMAKE_BUILD_TYPE=Release -G Ninja -S /workspace \
+              && cmake --build /workspace/build \
+              && cp /workspace/build/Forex-Calculator /workspace/package/ \
+              && linuxdeployqt /workspace/package/Forex-Calculator -appimage -bundle-non-qt-libs \
+              && mv /workspace/Forex-Calculator*.AppImage /workspace/Forex-Calculator.AppImage
+          "
 
     - name: Upload Ubuntu Artifact
       uses: actions/upload-artifact@v4
