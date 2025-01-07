@@ -15,13 +15,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-22.04, macos-latest, windows-latest]
+        os: [ubuntu-22.04, macos-12, windows-2022]
         include:
           - os: ubuntu-22.04
             artifact_extension: AppImage
-          - os: macos-latest
+          - os: macos-12
             artifact_extension: dmg
-          - os: windows-latest
+          - os: windows-2022
             artifact_extension: zip
 
     steps:
@@ -31,10 +31,12 @@ jobs:
     # ---------------------------
     # Ubuntu Section (AppImage)
     # ---------------------------
-    - name: Build in Docker (Ubuntu 20.04)
+    - name: Build AppImage (Ubuntu)
       if: matrix.os == 'ubuntu-22.04'
       run: |
         docker run --rm -v ${{ github.workspace }}:/workspace -w /workspace ubuntu:20.04 /bin/bash -c "
+        export DEBIAN_FRONTEND=noninteractive && \
+        export TZ=Etc/UTC && \
         apt update && apt install -y ninja-build cmake patchelf fuse libfuse2 libxkbcommon-x11-0 \
         libgl1-mesa-dev libglu1-mesa-dev libglib2.0-dev wget curl build-essential \
         xcb tzdata python3 python3-pip x11-xserver-utils \
@@ -54,7 +56,7 @@ jobs:
         ./linuxdeployqt-continuous-x86_64.AppImage package/Forex-Calculator -appimage -bundle-non-qt-libs && \
         mv Forex-Calculator*.AppImage Forex-Calculator.AppImage
         "
-
+      
     - name: Upload Ubuntu Artifact
       if: matrix.os == 'ubuntu-22.04'
       uses: actions/upload-artifact@v4
@@ -63,44 +65,43 @@ jobs:
         path: Forex-Calculator.AppImage
 
     # ---------------------------
-    # macOS Section
+    # macOS Section (DMG)
     # ---------------------------
-    - name: Install Dependencies (macOS)
-      if: matrix.os == 'macos-latest'
-      run: brew install ninja qt cmake
+    - name: Install dependencies (macOS)
+      if: matrix.os == 'macos-12'
+      run: brew install ninja cmake qt6
 
-    - name: Build with CMake (macOS)
-      if: matrix.os == 'macos-latest'
+    - name: Configure and Build (macOS)
+      if: matrix.os == 'macos-12'
       run: |
         cmake -B build -DCMAKE_BUILD_TYPE=Release -G "Ninja"
         cmake --build build
 
-    - name: Package as DMG (macOS)
-      if: matrix.os == 'macos-latest'
+    - name: Package DMG (macOS)
+      if: matrix.os == 'macos-12'
       run: |
         mkdir -p package
         cp -R build/Forex-Calculator.app package/
-        macdeployqt package/Forex-Calculator.app -dmg
+        /usr/local/opt/qt6/bin/macdeployqt package/Forex-Calculator.app -dmg
         mv package/*.dmg Forex-Calculator_macos.dmg
 
     - name: Upload macOS Artifact
-      if: matrix.os == 'macos-latest'
+      if: matrix.os == 'macos-12'
       uses: actions/upload-artifact@v4
       with:
         name: Forex-Calculator_macOS
         path: Forex-Calculator_macos.dmg
 
     # ---------------------------
-    # Windows Section
+    # Windows Section (EXE)
     # ---------------------------
-    - name: Install Dependencies (Windows)
-      if: matrix.os == 'windows-latest'
+    - name: Install dependencies (Windows)
+      if: matrix.os == 'windows-2022'
       run: |
         choco install ninja cmake mingw
-      shell: cmd
 
-    - name: Install Qt6 (Windows)
-      if: matrix.os == 'windows-latest'
+    - name: Install Qt (Windows)
+      if: matrix.os == 'windows-2022'
       uses: jurplel/install-qt-action@v4
       with:
         version: '6.6.0'
@@ -108,31 +109,29 @@ jobs:
         target: 'desktop'
         arch: 'win64_mingw'
 
-    - name: Build with CMake (Windows)
-      if: matrix.os == 'windows-latest'
+    - name: Configure and Build (Windows)
+      if: matrix.os == 'windows-2022'
       run: |
         cmake -B build -DCMAKE_BUILD_TYPE=Release -G Ninja
         cmake --build build
-      shell: cmd
 
-    - name: Package as ZIP (Windows)
-      if: matrix.os == 'windows-latest'
+    - name: Package EXE (Windows)
+      if: matrix.os == 'windows-2022'
       run: |
         mkdir package
         cp build/Forex-Calculator.exe package/
-        windeployqt.exe package/Forex-Calculator.exe
+        windeployqt package/Forex-Calculator.exe
         Compress-Archive -Path package -DestinationPath Forex-Calculator_windows.zip
-      shell: pwsh
 
     - name: Upload Windows Artifact
-      if: matrix.os == 'windows-latest'
+      if: matrix.os == 'windows-2022'
       uses: actions/upload-artifact@v4
       with:
         name: Forex-Calculator_Windows
         path: Forex-Calculator_windows.zip
 
   # ---------------------------
-  # Publish Section
+  # Publish Section (GitHub Release)
   # ---------------------------
   release:
     runs-on: ubuntu-latest
@@ -157,7 +156,6 @@ jobs:
         release_name: Forex-Calculator ${{ env.RELEASE_TAG }}
         draft: false
         prerelease: false
-        files: |
-          artifacts/*
+        files: artifacts/*
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
