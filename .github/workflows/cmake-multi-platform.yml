@@ -31,11 +31,10 @@ jobs:
     # ---------------------------
     # Ubuntu Section (AppImage)
     # ---------------------------
-    - name: Install Dependencies (Ubuntu)
+    - name: Install Docker (Ubuntu)
       if: matrix.os == 'ubuntu-latest'
       run: |
-        sudo apt update
-        sudo apt install -y docker.io
+        curl -fsSL https://get.docker.com | sh
 
     - name: Build AppImage (Ubuntu)
       if: matrix.os == 'ubuntu-latest'
