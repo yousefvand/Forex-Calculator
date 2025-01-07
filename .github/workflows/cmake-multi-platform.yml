@@ -35,9 +35,10 @@ jobs:
       if: matrix.os == 'ubuntu-22.04'
       run: |
         sudo apt update
-        sudo apt install -y ninja-build cmake libgl1-mesa-dev libglu1-mesa-dev libxkbcommon-dev \
-          libxkbcommon-x11-dev libxcb-icccm4 patchelf libfuse2 x11-utils xvfb \
-          libxcb-image0 libxcb-util1 libx11-xcb-dev
+        sudo apt install -y ninja-build cmake libgl1-mesa-dev libglu1-mesa-dev \
+          libxkbcommon-dev libxkbcommon-x11-dev libxcb-icccm4 patchelf libfuse2 \
+          x11-utils xvfb libxcb-image0 libxcb-util1 libxcb-keysyms1 \
+          libx11-xcb-dev
         wget -q https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage
         chmod +x linuxdeployqt-continuous-x86_64.AppImage
         sudo mv linuxdeployqt-continuous-x86_64.AppImage /usr/local/bin/linuxdeployqt
