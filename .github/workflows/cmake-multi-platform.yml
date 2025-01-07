@@ -7,7 +7,7 @@ on:
     branches: [main]
 
 permissions:
-  contents: write
+  contents: write  # Required for creating releases and uploading artifacts
 
 jobs:
   build:
@@ -15,13 +15,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-22.04, macos-14, windows-2022]
+        os: [ubuntu-latest, macos-latest, windows-latest]
         include:
-          - os: ubuntu-22.04
+          - os: ubuntu-latest
             artifact_extension: tar.gz
-          - os: macos-14
-            artifact_extension: dmg
-          - os: windows-2022
+          - os: macos-latest
+            artifact_extension: zip
+          - os: windows-latest
             artifact_extension: zip
 
     steps:
@@ -31,127 +31,120 @@ jobs:
     # ---------------------------
     # Ubuntu Section (AppImage)
     # ---------------------------
-    - name: Install dependencies (Ubuntu)
-      if: matrix.os == 'ubuntu-22.04'
+    - name: Install Dependencies (Ubuntu)
+      if: matrix.os == 'ubuntu-latest'
       run: |
         sudo apt update
-        sudo apt install -y ninja-build cmake libgl1-mesa-dev libglu1-mesa-dev \
-          libxkbcommon-dev libxkbcommon-x11-dev libxcb-icccm4 patchelf libfuse2 \
-          x11-utils xvfb libxcb-image0 libxcb-util1 libxcb-keysyms1 \
-          libxcb-render-util0 libxcb-xinerama0 libx11-xcb-dev
-        wget -q https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage
-        chmod +x linuxdeployqt-continuous-x86_64.AppImage
-        sudo mv linuxdeployqt-continuous-x86_64.AppImage /usr/local/bin/linuxdeployqt
-
-    - name: Create Qt Non-Interactive Script
-      if: matrix.os == 'ubuntu-22.04'
-      run: |
-        cat << EOF > qt-noninteractive.qs
-        function Controller() {
-          gui.clickButton(buttons.NextButton);
-          gui.clickButton(buttons.NextButton);
-          gui.clickButton(buttons.NextButton);
-          gui.clickButton(buttons.AcceptLicenseButton);
-          gui.clickButton(buttons.NextButton);
-          gui.clickButton(buttons.NextButton);
-          gui.clickButton(buttons.FinishButton);
-        }
-        EOF
-
-    - name: Install Qt6 (Ubuntu)
-      if: matrix.os == 'ubuntu-22.04'
-      run: |
-        QT_VERSION="6.6.0"
-        wget https://download.qt.io/official_releases/online_installers/qt-unified-linux-x64-online.run
-        chmod +x qt-unified-linux-x64-online.run
-        sudo apt install -y x11-xkb-utils
-        echo "Running Qt Installer"
-        xvfb-run sudo ./qt-unified-linux-x64-online.run --script qt-noninteractive.qs || exit 1
-        echo "/opt/Qt/${QT_VERSION}/gcc_64/bin" >> $GITHUB_PATH
-        export Qt6_DIR="/opt/Qt/${QT_VERSION}/gcc_64/lib/cmake"
+        sudo apt install -y ninja-build build-essential cmake libgl1-mesa-dev libglu1-mesa-dev rsync \
+          qt6-base-dev qt6-tools-dev qt6-tools-dev-tools qt6-l10n-tools qt6-declarative-dev \
+          qt6-multimedia-dev libpcre3 libpcre3-dev patchelf
 
     - name: Configure CMake (Ubuntu)
-      if: matrix.os == 'ubuntu-22.04'
-      run: cmake -B build -DCMAKE_BUILD_TYPE=Release -G Ninja
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        cmake -B build -DCMAKE_BUILD_TYPE=Release -G "Ninja" -S "${{ github.workspace }}"
 
     - name: Build Forex-Calculator (Ubuntu)
-      if: matrix.os == 'ubuntu-22.04'
+      if: matrix.os == 'ubuntu-latest'
       run: cmake --build build
 
-    - name: Package AppImage (Ubuntu)
-      if: matrix.os == 'ubuntu-22.04'
+    - name: Package Forex-Calculator (Ubuntu)
+      if: matrix.os == 'ubuntu-latest'
       run: |
-        mkdir -p package
+        mkdir -p package artifacts
         cp build/Forex-Calculator package/
-        linuxdeployqt package/Forex-Calculator -appimage -bundle-non-qt-libs
-        mv Forex-Calculator*.AppImage Forex-Calculator.AppImage
 
-    - name: Upload AppImage Artifact
-      if: matrix.os == 'ubuntu-22.04'
+        # Bundle dependencies using ldd
+        for lib in $(ldd package/Forex-Calculator | awk '{print $3}' | grep -v 'not'); do
+          cp -v "$lib" package/ || true
+        done
+        
+        # Copy libpcre if not already present
+        cp -v /lib/x86_64-linux-gnu/libpcre.so.3 package/ || true
+        
+        # Patch ELF to set rpath
+        patchelf --set-rpath '$ORIGIN' package/Forex-Calculator
+
+        # Create launcher script
+        cat << 'EOF' > package/run_forex_calculator.sh
+        #!/bin/bash
+        DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+        export LD_LIBRARY_PATH=$DIR:$LD_LIBRARY_PATH
+        exec "$DIR/Forex-Calculator"
+        EOF
+        chmod +x package/run_forex_calculator.sh
+
+        # Package into a tarball
+        tar -czvf artifacts/Forex-Calculator_ubuntu.tar.gz -C package .
+
+    - name: Upload Artifact (Ubuntu)
       uses: actions/upload-artifact@v4
       with:
-        name: Forex-Calculator_Ubuntu
-        path: Forex-Calculator.AppImage
+        name: Forex-Calculator_ubuntu
+        path: artifacts/Forex-Calculator_ubuntu.tar.gz
 
     # ---------------------------
-    # macOS Section (DMG)
+    # macOS Section
     # ---------------------------
-    - name: Install dependencies (macOS)
-      if: matrix.os == 'macos-14'
-      run: brew install ninja cmake qt6
-
-    - name: Configure and Build (macOS)
-      if: matrix.os == 'macos-14'
+    - name: Install Dependencies (macOS)
+      if: matrix.os == 'macos-latest'
       run: |
-        cmake -B build -DCMAKE_BUILD_TYPE=Release -G Ninja -DQt6_DIR="/usr/local/opt/qt6"
-        cmake --build build
+        brew install ninja qt cmake
 
-    - name: Package DMG (macOS)
-      if: matrix.os == 'macos-14'
+    - name: Configure CMake (macOS)
+      if: matrix.os == 'macos-latest'
+      run: |
+        cmake -B build -DCMAKE_BUILD_TYPE=Release -G "Ninja" -S "${{ github.workspace }}"
+
+    - name: Build Forex-Calculator (macOS)
+      if: matrix.os == 'macos-latest'
+      run: cmake --build build
+
+    - name: Package Forex-Calculator (macOS)
+      if: matrix.os == 'macos-latest'
       run: |
         mkdir -p package
         cp -R build/Forex-Calculator.app package/
-        /usr/local/opt/qt6/bin/macdeployqt package/Forex-Calculator.app -dmg
+        macdeployqt package/Forex-Calculator.app -dmg
         mv package/*.dmg Forex-Calculator_macos.dmg
 
-    - name: Upload macOS Artifact
-      if: matrix.os == 'macos-14'
+    - name: Upload Artifact (macOS)
       uses: actions/upload-artifact@v4
       with:
-        name: Forex-Calculator_macOS
+        name: Forex-Calculator_macos
         path: Forex-Calculator_macos.dmg
 
     # ---------------------------
     # Windows Section
     # ---------------------------
-    - name: Install dependencies (Windows)
-      if: matrix.os == 'windows-2022'
+    - name: Install Dependencies (Windows)
+      if: matrix.os == 'windows-latest'
       run: |
         choco install ninja cmake mingw
       shell: cmd
 
     - name: Install Qt (Windows)
-      if: matrix.os == 'windows-2022'
+      if: matrix.os == 'windows-latest'
       uses: jurplel/install-qt-action@v4
       with:
-        version: '6.6.0'
+        version: '6.5.3'
         host: 'windows'
         target: 'desktop'
         arch: 'win64_mingw'
 
     - name: Configure CMake (Windows)
-      if: matrix.os == 'windows-2022'
+      if: matrix.os == 'windows-latest'
       run: |
-        cmake -B build -DCMAKE_BUILD_TYPE=Release -G Ninja
+        cmake -B build -DCMAKE_BUILD_TYPE=Release -G Ninja -S "${{ github.workspace }}"
       shell: cmd
 
     - name: Build Forex-Calculator (Windows)
-      if: matrix.os == 'windows-2022'
+      if: matrix.os == 'windows-latest'
       run: cmake --build build
       shell: cmd
 
-    - name: Package (Windows)
-      if: matrix.os == 'windows-2022'
+    - name: Package Forex-Calculator (Windows)
+      if: matrix.os == 'windows-latest'
       run: |
         mkdir package
         copy build\Forex-Calculator.exe package\
@@ -159,17 +152,17 @@ jobs:
         Compress-Archive -Path package -DestinationPath Forex-Calculator_windows.zip
       shell: pwsh
 
-    - name: Upload Windows Artifact
+    - name: Upload Artifact (Windows)
       uses: actions/upload-artifact@v4
       with:
-        name: Forex-Calculator_Windows
+        name: Forex-Calculator_windows
         path: Forex-Calculator_windows.zip
 
   # ---------------------------
   # Publish Section
   # ---------------------------
   release:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     needs: build
     steps:
     - name: Checkout Code
