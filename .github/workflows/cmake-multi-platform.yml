@@ -18,9 +18,9 @@ jobs:
         os: [ubuntu-latest, macos-latest, windows-latest]
         include:
           - os: ubuntu-latest
-            artifact_extension: tar.gz
+            artifact_extension: AppImage
           - os: macos-latest
-            artifact_extension: zip
+            artifact_extension: dmg
           - os: windows-latest
             artifact_extension: zip
 
@@ -37,7 +37,7 @@ jobs:
         sudo apt update
         sudo apt install -y ninja-build build-essential cmake libgl1-mesa-dev libglu1-mesa-dev rsync \
           qt6-base-dev qt6-tools-dev qt6-tools-dev-tools qt6-l10n-tools qt6-declarative-dev \
-          qt6-multimedia-dev libpcre3 libpcre3-dev patchelf
+          qt6-multimedia-dev libpcre3 libpcre3-dev patchelf docker.io
 
     - name: Configure CMake (Ubuntu)
       if: matrix.os == 'ubuntu-latest'
@@ -48,40 +48,34 @@ jobs:
       if: matrix.os == 'ubuntu-latest'
       run: cmake --build build
 
-    - name: Package Forex-Calculator (Ubuntu)
+    - name: Package Forex-Calculator (Ubuntu as AppImage)
       if: matrix.os == 'ubuntu-latest'
       run: |
         mkdir -p package artifacts
         cp build/Forex-Calculator package/
 
-        # Bundle dependencies using ldd
-        for lib in $(ldd package/Forex-Calculator | awk '{print $3}' | grep -v 'not'); do
-          cp -v "$lib" package/ || true
-        done
+        # Download linuxdeployqt compatible with glibc 2.31
+        wget -c https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage
+        chmod +x linuxdeployqt-continuous-x86_64.AppImage
         
-        # Copy libpcre if not already present
-        cp -v /lib/x86_64-linux-gnu/libpcre.so.3 package/ || true
-        
-        # Patch ELF to set rpath
-        patchelf --set-rpath '$ORIGIN' package/Forex-Calculator
+        # Run linuxdeployqt within Ubuntu 20.04 Docker to handle glibc compatibility
+        docker run --rm \
+          -v $(pwd):/workspace \
+          -w /workspace \
+          ubuntu:20.04 bash -c "
+            apt update &&
+            apt install -y libfuse2 libx11-xcb1 libgl1-mesa-dev qt6-base-dev qt6-tools-dev-tools patchelf &&
+            ./linuxdeployqt-continuous-x86_64.AppImage package/Forex-Calculator -appimage -bundle-non-qt-libs
+          "
 
-        # Create launcher script
-        cat << 'EOF' > package/run_forex_calculator.sh
-        #!/bin/bash
-        DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-        export LD_LIBRARY_PATH=$DIR:$LD_LIBRARY_PATH
-        exec "$DIR/Forex-Calculator"
-        EOF
-        chmod +x package/run_forex_calculator.sh
-
-        # Package into a tarball
-        tar -czvf artifacts/Forex-Calculator_ubuntu.tar.gz -C package .
+        # Rename AppImage to standard name
+        mv Forex-Calculator*.AppImage artifacts/Forex-Calculator.AppImage
 
     - name: Upload Artifact (Ubuntu)
       uses: actions/upload-artifact@v4
       with:
-        name: Forex-Calculator_ubuntu
-        path: artifacts/Forex-Calculator_ubuntu.tar.gz
+        name: Forex-Calculator_AppImage
+        path: artifacts/Forex-Calculator.AppImage
 
     # ---------------------------
     # macOS Section
@@ -105,7 +99,7 @@ jobs:
       run: |
         mkdir -p package
         cp -R build/Forex-Calculator.app package/
-        macdeployqt package/Forex-Calculator.app -dmg
+        /usr/local/opt/qt/bin/macdeployqt package/Forex-Calculator.app -dmg
         mv package/*.dmg Forex-Calculator_macos.dmg
 
     - name: Upload Artifact (macOS)
