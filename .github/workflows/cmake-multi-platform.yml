@@ -35,26 +35,24 @@ jobs:
       if: matrix.os == 'ubuntu-22.04'
       run: |
         sudo apt update
-        sudo apt install -y ninja-build cmake patchelf fuse libfuse2 libxkbcommon-x11-0 \
-          libgl1-mesa-dev libglu1-mesa-dev libxcb-icccm4 libxcb-image0 libxcb-keysyms1 \
-          libxcb-randr0 libxcb-render-util0 libxcb-shape0 libxcb-xfixes0 libxcb-xinerama0 \
+        sudo apt install -y ninja-build cmake patchelf fuse libfuse2 \
+          libxkbcommon-x11-0 libgl1-mesa-dev libglu1-mesa-dev \
+          libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-randr0 \
+          libxcb-render-util0 libxcb-shape0 libxcb-xfixes0 libxcb-xinerama0 \
           libxcb-sync1 libxcb-xkb1 x11-xserver-utils wget curl xcb libxcb1-dev build-essential xvfb
 
-    - name: Download Qt Installer (Ubuntu)
+    - name: Download Qt6 (Ubuntu)
       if: matrix.os == 'ubuntu-22.04'
       run: |
-        QT_VERSION="6.6.1"
-        wget https://download.qt.io/official_releases/online_installers/qt-unified-linux-x64-online.run
-        chmod +x qt-unified-linux-x64-online.run
-        echo 'function Controller() {}' > qt-noninteractive.qs
-        echo 'Controller.prototype.WelcomePageCallback = function() {' >> qt-noninteractive.qs
-        echo '    gui.clickButton(gui.buttonByText("Next"));' >> qt-noninteractive.qs
-        echo '}' >> qt-noninteractive.qs
+        QT_VERSION="6.6.0"
+        wget https://download.qt.io/official_releases/qt/${QT_VERSION%.*}/$QT_VERSION/qt-opensource-linux-x64-$QT_VERSION.run
+        chmod +x qt-opensource-linux-x64-$QT_VERSION.run
 
     - name: Install Qt6 (Ubuntu)
       if: matrix.os == 'ubuntu-22.04'
       run: |
-        xvfb-run sudo ./qt-unified-linux-x64-online.run --script qt-noninteractive.qs || xvfb-run sudo ./qt-unified-linux-x64-online.run --no-sandbox --script qt-noninteractive.qs
+        xvfb-run sudo ./qt-opensource-linux-x64-$QT_VERSION.run --script qt-noninteractive.qs || \
+        xvfb-run sudo ./qt-opensource-linux-x64-$QT_VERSION.run --no-sandbox --script qt-noninteractive.qs
         echo "/opt/Qt/${QT_VERSION}/gcc_64/bin" >> $GITHUB_PATH
         export Qt6_DIR="/opt/Qt/${QT_VERSION}/gcc_64/lib/cmake"
 
@@ -122,7 +120,7 @@ jobs:
       if: matrix.os == 'windows-latest'
       uses: jurplel/install-qt-action@v4
       with:
-        version: '6.6.1'
+        version: '6.6.0'
         host: 'windows'
         target: 'desktop'
         arch: 'win64_mingw'
