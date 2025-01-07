@@ -40,7 +40,7 @@ jobs:
           libgl1-mesa-dev libglu1-mesa-dev libxcb-icccm4 libxcb-image0 \
           libxcb-keysyms1 libxcb-randr0 libxcb-render-util0 libxcb-shape0 \
           libxcb-xfixes0 libxcb-xinerama0 libxcb-sync1 libxcb-xkb1 x11-xserver-utils \
-          wget curl xcb libxcb1-dev build-essential tzdata python3-pip
+          wget curl xcb libxcb1-dev build-essential tzdata python3 python3-pip
         pip3 install aqtinstall
 
     - name: Pull Ubuntu 20.04 Docker Image
@@ -57,7 +57,7 @@ jobs:
           ubuntu:20.04 /bin/bash -c "
             export DEBIAN_FRONTEND=noninteractive &&
             apt update &&
-            apt install -y ninja-build cmake patchelf fuse libfuse2 wget xcb \
+            apt install -y python3 python3-pip ninja-build cmake patchelf fuse libfuse2 wget xcb \
             libxkbcommon-x11-0 libgl1-mesa-dev libglu1-mesa-dev build-essential &&
             pip3 install aqtinstall &&
             aqt install-qt linux desktop 6.6.0 gcc_64 -O /opt/Qt &&
