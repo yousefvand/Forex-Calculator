@@ -35,38 +35,28 @@ jobs:
       if: matrix.os == 'ubuntu-latest'
       run: |
         sudo apt update
-        sudo apt install -y ninja-build build-essential cmake libgl1-mesa-dev libglu1-mesa-dev rsync \
-          qt6-base-dev qt6-tools-dev qt6-tools-dev-tools qt6-l10n-tools qt6-declarative-dev \
-          qt6-multimedia-dev libpcre3 libpcre3-dev patchelf libfuse2
+        sudo apt install -y docker.io
 
-    - name: Configure CMake (Ubuntu)
+    - name: Build AppImage (Ubuntu)
       if: matrix.os == 'ubuntu-latest'
       run: |
-        cmake -B build -DCMAKE_BUILD_TYPE=Release -G "Ninja" -S "${{ github.workspace }}"
-
-    - name: Build Forex-Calculator (Ubuntu)
-      if: matrix.os == 'ubuntu-latest'
-      run: cmake --build build
-
-    - name: Package Forex-Calculator (Ubuntu as AppImage)
-      if: matrix.os == 'ubuntu-latest'
-      run: |
-        mkdir -p package artifacts
-        cp build/Forex-Calculator package/
-
-        # Download linuxdeployqt directly
-        wget -c https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage
-        chmod +x linuxdeployqt-continuous-x86_64.AppImage
-
-        # Export path for Qt
-        export PATH=/opt/Qt/6.5.3/gcc_64/bin:$PATH
-        export Qt6_DIR=/opt/Qt/6.5.3/gcc_64/lib/cmake
-
-        # Create AppImage
-        ./linuxdeployqt-continuous-x86_64.AppImage package/Forex-Calculator -appimage -bundle-non-qt-libs
-
-        # Rename AppImage to standard name
-        mv Forex-Calculator*.AppImage artifacts/Forex-Calculator.AppImage
+        docker run --rm \
+          -v ${{ github.workspace }}:/workspace \
+          -w /workspace \
+          ubuntu:20.04 bash -c "
+            apt update &&
+            apt install -y ninja-build build-essential cmake libgl1-mesa-dev libglu1-mesa-dev rsync \
+            qt6-base-dev qt6-tools-dev qt6-tools-dev-tools qt6-l10n-tools qt6-declarative-dev \
+            qt6-multimedia-dev libpcre3 libpcre3-dev patchelf wget fuse &&
+            wget -c https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage &&
+            chmod +x linuxdeployqt-continuous-x86_64.AppImage &&
+            cmake -B build -DCMAKE_BUILD_TYPE=Release -G Ninja -S . &&
+            cmake --build build &&
+            mkdir -p package artifacts &&
+            cp build/Forex-Calculator package/ &&
+            ./linuxdeployqt-continuous-x86_64.AppImage package/Forex-Calculator -appimage -bundle-non-qt-libs &&
+            mv Forex-Calculator*.AppImage artifacts/Forex-Calculator.AppImage
+          "
 
     - name: Upload Artifact (Ubuntu)
       uses: actions/upload-artifact@v4
