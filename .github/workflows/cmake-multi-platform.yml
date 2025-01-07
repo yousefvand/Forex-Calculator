@@ -42,12 +42,12 @@ jobs:
     - name: Install Qt6 (Ubuntu)
       if: matrix.os == 'ubuntu-latest'
       run: |
-        QT_VERSION="6.6.0"
-        wget https://download.qt.io/official_releases/qt/${QT_VERSION%.*}/$QT_VERSION/qt-opensource-linux-x64-$QT_VERSION.run
-        chmod +x qt-opensource-linux-x64-$QT_VERSION.run
-        sudo ./qt-opensource-linux-x64-$QT_VERSION.run --script qt-noninteractive.qs
-        echo "/opt/Qt/$QT_VERSION/gcc_64/bin" >> $GITHUB_PATH
-        export Qt6_DIR="/opt/Qt/$QT_VERSION/gcc_64/lib/cmake"
+        wget https://download.qt.io/official_releases/online_installers/qt-unified-linux-x64-online.run
+        chmod +x qt-unified-linux-x64-online.run
+        sudo apt install -y libxkbcommon-x11-0 libxcb1 libxcb-keysyms1 libxcb-image0 libxcb-render0 libxcb-xinerama0 libxcb-icccm4
+        xvfb-run sudo ./qt-unified-linux-x64-online.run --script qt-noninteractive.qs || xvfb-run sudo ./qt-unified-linux-x64-online.run --no-sandbox --script qt-noninteractive.qs
+        echo "/opt/Qt/6.6.0/gcc_64/bin" >> $GITHUB_PATH
+        export Qt6_DIR="/opt/Qt/6.6.0/gcc_64/lib/cmake"
 
     - name: Build AppImage (Ubuntu)
       if: matrix.os == 'ubuntu-latest'
