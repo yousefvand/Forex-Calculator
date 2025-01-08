@@ -107,81 +107,67 @@ jobs:
         name: Forex-Calculator_ubuntu
         path: artifacts/Forex-Calculator.AppImage
 
-    # ---------------------------
-    # macOS Section
-    # ---------------------------
-    - name: Install Dependencies (macOS)
-      if: matrix.os == 'macos-latest'
-      run: |
-        brew install ninja qt cmake
+  # ---------------------------
+  # macOS Section
+  # ---------------------------
+  - name: Install Dependencies (macOS)
+    if: matrix.os == 'macos-latest'
+    run: |
+      brew install ninja qt cmake
 
-    - name: Configure CMake (macOS)
-      if: matrix.os == 'macos-latest'
-      run: |
-        cmake -B build -DCMAKE_BUILD_TYPE=Release -G "Ninja" -S "${{ github.workspace }}"
+  - name: Configure CMake (macOS)
+    if: matrix.os == 'macos-latest'
+    run: |
+      cmake -B build -DCMAKE_BUILD_TYPE=Release -G "Ninja" -S "${{ github.workspace }}"
 
-    - name: Build Forex-Calculator (macOS)
-      if: matrix.os == 'macos-latest'
-      run: cmake --build build
+  - name: Build Forex-Calculator (macOS)
+    if: matrix.os == 'macos-latest'
+    run: cmake --build build
 
-    - name: Package Forex-Calculator (macOS)
-      if: matrix.os == 'macos-latest'
-      run: |
-        mkdir -p package
-        cp -R build/Forex-Calculator.app package/
-        macdeployqt package/Forex-Calculator.app -dmg
-        mv package/*.dmg Forex-Calculator_macos.dmg
+  # ---------------------------
+  # Windows Section
+  # ---------------------------
+  - name: Install Dependencies (Windows)
+    if: matrix.os == 'windows-latest'
+    run: |
+      choco install ninja cmake mingw
+    shell: cmd
 
-    - name: Upload Artifact (macOS)
-      uses: actions/upload-artifact@v4
+  - name: Install Qt (Windows)
+    if: matrix.os == 'windows-latest'
+    uses: jurplel/install-qt-action@v4
+    with:
+      version: '6.5.3'
+      host: 'windows'
+      target: 'desktop'
+      arch: 'win64_mingw'
+
+  # ---------------------------
+  # Publish Section
+  # ---------------------------
+  release:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Download Artifacts
+      uses: actions/download-artifact@v4
       with:
-        name: Forex-Calculator_macos
-        path: Forex-Calculator_macos.dmg
+        path: artifacts
+        merge-multiple: true
 
-    # ---------------------------
-    # Windows Section
-    # ---------------------------
-    - name: Install Dependencies (Windows)
-      if: matrix.os == 'windows-latest'
-      run: |
-        choco install ninja cmake mingw
-      shell: cmd
+    - name: Generate Release Tag
+      run: echo "RELEASE_TAG=release-$(date +%Y%m%d%H%M%S)" >> $GITHUB_ENV
 
-    - name: Install Qt (Windows)
-      if: matrix.os == 'windows-latest'
-      uses: jurplel/install-qt-action@v4
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v1
       with:
-        version: '6.5.3'
-        host: 'windows'
-        target: 'desktop'
-        arch: 'win64_mingw'
-
-    # ---------------------------
-    # Publish Section
-    # ---------------------------
-    release:
-      runs-on: ubuntu-latest
-      needs: build
-      steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-
-      - name: Download Artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: artifacts
-          merge-multiple: true
-
-      - name: Generate Release Tag
-        run: echo "RELEASE_TAG=release-$(date +%Y%m%d%H%M%S)" >> $GITHUB_ENV
-
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v1
-        with:
-          tag_name: ${{ env.RELEASE_TAG }}
-          release_name: Forex-Calculator ${{ env.RELEASE_TAG }}
-          draft: false
-          prerelease: false
-          files: artifacts/*
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        tag_name: ${{ env.RELEASE_TAG }}
+        release_name: Forex-Calculator ${{ env.RELEASE_TAG }}
+        draft: false
+        prerelease: false
+        files: artifacts/*
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
