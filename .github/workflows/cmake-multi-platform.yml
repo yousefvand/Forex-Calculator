@@ -108,41 +108,6 @@ jobs:
         path: artifacts/Forex-Calculator.AppImage
 
   # ---------------------------
-  # macOS Section
-  # ---------------------------
-  - name: Install Dependencies (macOS)
-    if: matrix.os == 'macos-latest'
-    run: |
-      brew install ninja qt cmake
-
-  - name: Configure CMake (macOS)
-    if: matrix.os == 'macos-latest'
-    run: |
-      cmake -B build -DCMAKE_BUILD_TYPE=Release -G "Ninja" -S "${{ github.workspace }}"
-
-  - name: Build Forex-Calculator (macOS)
-    if: matrix.os == 'macos-latest'
-    run: cmake --build build
-
-  # ---------------------------
-  # Windows Section
-  # ---------------------------
-  - name: Install Dependencies (Windows)
-    if: matrix.os == 'windows-latest'
-    run: |
-      choco install ninja cmake mingw
-    shell: cmd
-
-  - name: Install Qt (Windows)
-    if: matrix.os == 'windows-latest'
-    uses: jurplel/install-qt-action@v4
-    with:
-      version: '6.5.3'
-      host: 'windows'
-      target: 'desktop'
-      arch: 'win64_mingw'
-
-  # ---------------------------
   # Publish Section
   # ---------------------------
   release:
