@@ -18,7 +18,7 @@ jobs:
         os: [ubuntu-latest, macos-latest, windows-latest]
         include:
           - os: ubuntu-latest
-            artifact_extension: tar.gz
+            artifact_extension: AppImage
           - os: macos-latest
             artifact_extension: zip
           - os: windows-latest
@@ -29,13 +29,13 @@ jobs:
       uses: actions/checkout@v4
 
     # --------------
-    # Ubuntu Section
+    # Linux Section
     # --------------
     - name: Install Dependencies (Ubuntu)
       if: matrix.os == 'ubuntu-latest'
       run: |
         sudo apt update
-        sudo apt install -y ninja-build build-essential libgl1-mesa-dev libglu1-mesa-dev rsync libpcre3
+        sudo apt install -y ninja-build build-essential libgl1-mesa-dev libglu1-mesa-dev rsync libpcre3 appimagetool
 
     - name: Build Qt Static (Ubuntu)
       if: matrix.os == 'ubuntu-latest'
@@ -63,17 +63,29 @@ jobs:
       if: matrix.os == 'ubuntu-latest'
       run: cmake --build build --config Release
 
-    - name: Package Forex-Calculator (Ubuntu)
+    - name: Package AppImage (Ubuntu)
       if: matrix.os == 'ubuntu-latest'
       run: |
+        mkdir -p AppDir/usr/bin
+        cp build/Forex-Calculator AppDir/usr/bin/
+        cp /usr/lib/x86_64-linux-gnu/libpcre.so.3 AppDir/usr/bin/
+        echo "[Desktop Entry]
+        Name=Forex Calculator
+        Exec=Forex-Calculator
+        Icon=Forex-Calculator
+        Type=Application
+        Categories=Utility;" > AppDir/Forex-Calculator.desktop
+        echo "Forex-Calculator" > AppDir/AppRun
+        chmod +x AppDir/AppRun
+        appimagetool AppDir Forex-Calculator.AppImage
         mkdir -p artifacts
-        tar -czvf artifacts/Forex-Calculator_ubuntu.tar.gz -C build .
+        mv Forex-Calculator.AppImage artifacts/
 
     - name: Upload Artifact (Ubuntu)
       uses: actions/upload-artifact@v4
       with:
         name: Forex-Calculator_ubuntu
-        path: artifacts/Forex-Calculator_ubuntu.tar.gz
+        path: artifacts/Forex-Calculator.AppImage
 
 
     # -------------
