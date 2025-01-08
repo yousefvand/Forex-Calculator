@@ -7,7 +7,7 @@ on:
     branches: [main]
 
 permissions:
-  contents: write  # Required for creating releases and uploading artifacts
+  contents: write
 
 jobs:
   build:
@@ -18,7 +18,7 @@ jobs:
         os: [ubuntu-latest, macos-latest, windows-latest]
         include:
           - os: ubuntu-latest
-            artifact_extension: tar.gz
+            artifact_extension: AppImage
           - os: macos-latest
             artifact_extension: zip
           - os: windows-latest
@@ -37,45 +37,63 @@ jobs:
         sudo apt update
         sudo apt install -y ninja-build build-essential cmake libgl1-mesa-dev libglu1-mesa-dev rsync \
           qt6-base-dev qt6-tools-dev qt6-tools-dev-tools qt6-l10n-tools qt6-declarative-dev \
-          qt6-multimedia-dev libpcre3 libpcre3-dev patchelf
+          qt6-multimedia-dev libpcre3 libpcre3-dev patchelf appimagetool
+
     - name: Configure CMake (Ubuntu)
       if: matrix.os == 'ubuntu-latest'
       run: |
         cmake -B build -DCMAKE_BUILD_TYPE=Release -G "Ninja" -S "${{ github.workspace }}"
+
     - name: Build Forex-Calculator (Ubuntu)
       if: matrix.os == 'ubuntu-latest'
       run: cmake --build build
 
-    - name: Package Forex-Calculator (Ubuntu)
+    - name: Package Forex-Calculator as AppImage (Ubuntu)
       if: matrix.os == 'ubuntu-latest'
       run: |
-        mkdir -p package artifacts
-        cp build/Forex-Calculator package/
+        mkdir -p AppDir/usr/bin
+        cp build/Forex-Calculator AppDir/usr/bin/
+        
         # Bundle dependencies using ldd
-        for lib in $(ldd package/Forex-Calculator | awk '{print $3}' | grep -v 'not'); do
-          cp -v "$lib" package/ || true
+        mkdir -p AppDir/usr/lib/
+        for lib in $(ldd build/Forex-Calculator | awk '{print $3}' | grep -v 'not'); do
+          cp -v "$lib" AppDir/usr/lib/ || true
         done
         
-        # Copy libpcre if not already present
-        cp -v /lib/x86_64-linux-gnu/libpcre.so.3 package/ || true
-        
-        # Patch ELF to set rpath
-        patchelf --set-rpath '$ORIGIN' package/Forex-Calculator
-        # Create launcher script
-        cat << 'EOF' > package/run_forex_calculator.sh
-        #!/bin/bash
-        DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-        export LD_LIBRARY_PATH=$DIR:$LD_LIBRARY_PATH
-        exec "$DIR/Forex-Calculator"
+        # Copy additional required libraries
+        cp -v /lib/x86_64-linux-gnu/libpcre.so.3 AppDir/usr/lib/ || true
+
+        # Create AppImage desktop entry
+        mkdir -p AppDir/usr/share/applications
+        cat <<EOF > AppDir/usr/share/applications/forex-calculator.desktop
+        [Desktop Entry]
+        Name=Forex Calculator
+        Exec=Forex-Calculator
+        Icon=forex-calculator
+        Type=Application
+        Categories=Utility;
         EOF
-        chmod +x package/run_forex_calculator.sh
-        # Package into a tarball
-        tar -czvf artifacts/Forex-Calculator_ubuntu.tar.gz -C package .
-    - name: Upload Artifact (Ubuntu)
+
+        # Create AppImage icon
+        mkdir -p AppDir/usr/share/icons/hicolor/256x256/apps
+        cp assets/icons/forex-calculator.png AppDir/usr/share/icons/hicolor/256x256/apps/forex-calculator.png
+
+        # Generate AppRun script
+        cat <<EOF > AppDir/AppRun
+        #!/bin/bash
+        exec "\$(dirname "\$0")/usr/bin/Forex-Calculator" "\$@"
+        EOF
+        chmod +x AppDir/AppRun
+
+        # Build the AppImage
+        appimagetool AppDir Forex-Calculator.AppImage
+        mv Forex-Calculator.AppImage artifacts/
+
+    - name: Upload AppImage Artifact (Ubuntu)
       uses: actions/upload-artifact@v4
       with:
         name: Forex-Calculator_ubuntu
-        path: artifacts/Forex-Calculator_ubuntu.tar.gz
+        path: artifacts/Forex-Calculator.AppImage
 
     # ---------------------------
     # macOS Section
@@ -84,10 +102,12 @@ jobs:
       if: matrix.os == 'macos-latest'
       run: |
         brew install ninja qt cmake
+
     - name: Configure CMake (macOS)
       if: matrix.os == 'macos-latest'
       run: |
         cmake -B build -DCMAKE_BUILD_TYPE=Release -G "Ninja" -S "${{ github.workspace }}"
+
     - name: Build Forex-Calculator (macOS)
       if: matrix.os == 'macos-latest'
       run: cmake --build build
@@ -99,6 +119,7 @@ jobs:
         cp -R build/Forex-Calculator.app package/
         macdeployqt package/Forex-Calculator.app -dmg
         mv package/*.dmg Forex-Calculator_macos.dmg
+
     - name: Upload Artifact (macOS)
       uses: actions/upload-artifact@v4
       with:
