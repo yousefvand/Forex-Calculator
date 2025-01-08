@@ -37,7 +37,7 @@ jobs:
         sudo apt update
         sudo apt install -y ninja-build build-essential cmake libgl1-mesa-dev libglu1-mesa-dev rsync \
           qt6-base-dev qt6-tools-dev qt6-tools-dev-tools qt6-l10n-tools qt6-declarative-dev \
-          qt6-multimedia-dev libpcre3 libpcre3-dev patchelf curl
+          qt6-multimedia-dev libpcre3 libpcre3-dev patchelf curl imagemagick
 
     - name: Download AppImageTool (Ubuntu)
       if: matrix.os == 'ubuntu-latest'
@@ -81,9 +81,14 @@ jobs:
         Categories=Utility;
         EOF
 
-        # Create AppImage icon
+        # Handle missing icon gracefully
         mkdir -p AppDir/usr/share/icons/hicolor/256x256/apps
-        cp assets/icons/forex-calculator.png AppDir/usr/share/icons/hicolor/256x256/apps/forex-calculator.png
+        if [ -f assets/icons/forex-calculator.png ]; then
+          cp assets/icons/forex-calculator.png AppDir/usr/share/icons/hicolor/256x256/apps/forex-calculator.png
+        else
+          echo "Icon not found. Creating a placeholder icon."
+          convert -size 256x256 xc:white -fill black -gravity center -pointsize 72 -draw "text 0,0 'FX'" AppDir/usr/share/icons/hicolor/256x256/apps/forex-calculator.png
+        fi
 
         # Generate AppRun script
         cat <<EOF > AppDir/AppRun
@@ -150,32 +155,6 @@ jobs:
         host: 'windows'
         target: 'desktop'
         arch: 'win64_mingw'
-
-    - name: Configure CMake (Windows)
-      if: matrix.os == 'windows-latest'
-      run: |
-        cmake -B build -DCMAKE_BUILD_TYPE=Release -G Ninja -S "${{ github.workspace }}"
-      shell: cmd
-
-    - name: Build Forex-Calculator (Windows)
-      if: matrix.os == 'windows-latest'
-      run: cmake --build build
-      shell: cmd
-
-    - name: Package Forex-Calculator (Windows)
-      if: matrix.os == 'windows-latest'
-      run: |
-        mkdir package
-        copy build\Forex-Calculator.exe package\
-        windeployqt.exe package\Forex-Calculator.exe
-        Compress-Archive -Path package -DestinationPath Forex-Calculator_windows.zip
-      shell: pwsh
-
-    - name: Upload Artifact (Windows)
-      uses: actions/upload-artifact@v4
-      with:
-        name: Forex-Calculator_windows
-        path: Forex-Calculator_windows.zip
 
   # ---------------------------
   # Publish Section
