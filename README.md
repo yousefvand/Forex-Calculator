@@ -17,4 +17,16 @@ Forex calculator Contains:
 12) Swap Calculator
 13) Volatility Calculator
 
-![gui](assets/gui.png)
+![gui](assets/gui1.png)
+![gui](assets/gui2.png)
+![gui](assets/gui3.png)
+![gui](assets/gui4.png)
+![gui](assets/gui5.png)
+![gui](assets/gui6.png)
+![gui](assets/gui7.png)
+![gui](assets/gui8.png)
+![gui](assets/gui9.png)
+![gui](assets/gui10.png)
+![gui](assets/gui11.png)
+![gui](assets/gui12.png)
+![gui](assets/gui13.png)
