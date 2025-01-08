@@ -7,7 +7,7 @@ on:
     branches: [main]
 
 permissions:
-  contents: write
+  contents: write  # Required for creating releases and uploading artifacts
 
 jobs:
   build:
@@ -18,7 +18,7 @@ jobs:
         os: [ubuntu-latest, macos-latest, windows-latest]
         include:
           - os: ubuntu-latest
-            artifact_extension: AppImage
+            artifact_extension: tar.gz
           - os: macos-latest
             artifact_extension: zip
           - os: windows-latest
@@ -28,149 +28,130 @@ jobs:
     - name: Checkout Code
       uses: actions/checkout@v4
 
-    # --------------
-    # Linux Section
-    # --------------
+    # ---------------------------
+    # Linux Section (AppImage)
+    # ---------------------------
     - name: Install Dependencies (Ubuntu)
       if: matrix.os == 'ubuntu-latest'
       run: |
         sudo apt update
-        sudo apt install -y ninja-build build-essential libgl1-mesa-dev libglu1-mesa-dev rsync libpcre3 appimagetool
-
-    - name: Build Qt Static (Ubuntu)
-      if: matrix.os == 'ubuntu-latest'
-      run: |
-        git clone https://code.qt.io/qt/qt5.git
-        cd qt5
-        git checkout v6.8.1
-        ./init-repository
-        mkdir build-static
-        cd build-static
-        ../configure -release -static -prefix ${{ github.workspace }}/qt-static -opensource -confirm-license -nomake examples -nomake tests
-        make -j$(nproc)
-        make install
-
+        sudo apt install -y ninja-build build-essential cmake libgl1-mesa-dev libglu1-mesa-dev rsync \
+          qt6-base-dev qt6-tools-dev qt6-tools-dev-tools qt6-l10n-tools qt6-declarative-dev \
+          qt6-multimedia-dev libpcre3 libpcre3-dev patchelf
     - name: Configure CMake (Ubuntu)
       if: matrix.os == 'ubuntu-latest'
       run: |
-        cmake -B build -DCMAKE_BUILD_TYPE=Release \
-          -G "Ninja" \
-          -DCMAKE_PREFIX_PATH="${{ github.workspace }}/qt-static" \
-          -DBUILD_SHARED_LIBS=OFF \
-          -S .
-
+        cmake -B build -DCMAKE_BUILD_TYPE=Release -G "Ninja" -S "${{ github.workspace }}"
     - name: Build Forex-Calculator (Ubuntu)
       if: matrix.os == 'ubuntu-latest'
-      run: cmake --build build --config Release
+      run: cmake --build build
 
-    - name: Package AppImage (Ubuntu)
+    - name: Package Forex-Calculator (Ubuntu)
       if: matrix.os == 'ubuntu-latest'
       run: |
-        mkdir -p AppDir/usr/bin
-        cp build/Forex-Calculator AppDir/usr/bin/
-        cp /usr/lib/x86_64-linux-gnu/libpcre.so.3 AppDir/usr/bin/
-        echo "[Desktop Entry]
-        Name=Forex Calculator
-        Exec=Forex-Calculator
-        Icon=Forex-Calculator
-        Type=Application
-        Categories=Utility;" > AppDir/Forex-Calculator.desktop
-        echo "Forex-Calculator" > AppDir/AppRun
-        chmod +x AppDir/AppRun
-        appimagetool AppDir Forex-Calculator.AppImage
-        mkdir -p artifacts
-        mv Forex-Calculator.AppImage artifacts/
-
+        mkdir -p package artifacts
+        cp build/Forex-Calculator package/
+        # Bundle dependencies using ldd
+        for lib in $(ldd package/Forex-Calculator | awk '{print $3}' | grep -v 'not'); do
+          cp -v "$lib" package/ || true
+        done
+        
+        # Copy libpcre if not already present
+        cp -v /lib/x86_64-linux-gnu/libpcre.so.3 package/ || true
+        
+        # Patch ELF to set rpath
+        patchelf --set-rpath '$ORIGIN' package/Forex-Calculator
+        # Create launcher script
+        cat << 'EOF' > package/run_forex_calculator.sh
+        #!/bin/bash
+        DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+        export LD_LIBRARY_PATH=$DIR:$LD_LIBRARY_PATH
+        exec "$DIR/Forex-Calculator"
+        EOF
+        chmod +x package/run_forex_calculator.sh
+        # Package into a tarball
+        tar -czvf artifacts/Forex-Calculator_ubuntu.tar.gz -C package .
     - name: Upload Artifact (Ubuntu)
       uses: actions/upload-artifact@v4
       with:
         name: Forex-Calculator_ubuntu
-        path: artifacts/Forex-Calculator.AppImage
+        path: artifacts/Forex-Calculator_ubuntu.tar.gz
 
-
-    # -------------
+    # ---------------------------
     # macOS Section
-    # -------------
+    # ---------------------------
     - name: Install Dependencies (macOS)
       if: matrix.os == 'macos-latest'
-      run: brew install ninja qt
-
+      run: |
+        brew install ninja qt cmake
     - name: Configure CMake (macOS)
       if: matrix.os == 'macos-latest'
       run: |
-        cmake -B build -DCMAKE_BUILD_TYPE=Release \
-          -G "Ninja" \
-          -DBUILD_SHARED_LIBS=OFF \
-          -DCMAKE_PREFIX_PATH="$(brew --prefix qt)" \
-          -S .
-
+        cmake -B build -DCMAKE_BUILD_TYPE=Release -G "Ninja" -S "${{ github.workspace }}"
     - name: Build Forex-Calculator (macOS)
       if: matrix.os == 'macos-latest'
-      run: cmake --build build --config Release
+      run: cmake --build build
 
     - name: Package Forex-Calculator (macOS)
       if: matrix.os == 'macos-latest'
       run: |
-        mkdir -p artifacts
-        zip -r artifacts/Forex-Calculator_macos.zip build
-
+        mkdir -p package
+        cp -R build/Forex-Calculator.app package/
+        macdeployqt package/Forex-Calculator.app -dmg
+        mv package/*.dmg Forex-Calculator_macos.dmg
     - name: Upload Artifact (macOS)
       uses: actions/upload-artifact@v4
       with:
         name: Forex-Calculator_macos
-        path: artifacts/Forex-Calculator_macos.zip
+        path: Forex-Calculator_macos.dmg
 
-
-    # ---------------
+    # ---------------------------
     # Windows Section
-    # ---------------
+    # ---------------------------
     - name: Install Dependencies (Windows)
       if: matrix.os == 'windows-latest'
       run: |
         choco install ninja cmake mingw
       shell: cmd
 
-    - name: Install Static Qt (Windows)
+    - name: Install Qt (Windows)
+      if: matrix.os == 'windows-latest'
       uses: jurplel/install-qt-action@v4
       with:
         version: '6.5.3'
         host: 'windows'
         target: 'desktop'
         arch: 'win64_mingw'
-        static: true
 
     - name: Configure CMake (Windows)
       if: matrix.os == 'windows-latest'
       run: |
-        cmake -B build -DCMAKE_BUILD_TYPE=Release \
-          -G Ninja \
-          -DCMAKE_PREFIX_PATH=D:\a\Forex-Calculator\Qt\6.5.3\mingw_64 \
-          -DBUILD_SHARED_LIBS=OFF \
-          -S .
+        cmake -B build -DCMAKE_BUILD_TYPE=Release -G Ninja -S "${{ github.workspace }}"
       shell: cmd
 
     - name: Build Forex-Calculator (Windows)
       if: matrix.os == 'windows-latest'
-      run: cmake --build build --config Release
+      run: cmake --build build
       shell: cmd
 
     - name: Package Forex-Calculator (Windows)
       if: matrix.os == 'windows-latest'
       run: |
-        mkdir artifacts
-        Compress-Archive -Path "build/*" -DestinationPath "artifacts/Forex-Calculator_windows.zip"
+        mkdir package
+        copy build\Forex-Calculator.exe package\
+        windeployqt.exe package\Forex-Calculator.exe
+        Compress-Archive -Path package -DestinationPath Forex-Calculator_windows.zip
       shell: pwsh
 
     - name: Upload Artifact (Windows)
       uses: actions/upload-artifact@v4
       with:
         name: Forex-Calculator_windows
-        path: artifacts/Forex-Calculator_windows.zip
+        path: Forex-Calculator_windows.zip
 
-
-  # -------------------------
-  # Release Job (After Build)
-  # -------------------------
+  # ---------------------------
+  # Publish Section
+  # ---------------------------
   release:
     runs-on: ubuntu-latest
     needs: build
@@ -182,24 +163,18 @@ jobs:
       uses: actions/download-artifact@v4
       with:
         path: artifacts
+        merge-multiple: true
 
-    - name: Generate Tag Name
-      id: tag_name
+    - name: Generate Release Tag
       run: echo "RELEASE_TAG=release-$(date +%Y%m%d%H%M%S)" >> $GITHUB_ENV
 
     - name: Create GitHub Release
-      id: create_release
       uses: softprops/action-gh-release@v1
       with:
         tag_name: ${{ env.RELEASE_TAG }}
-        release_name: Forex-Calculator Release
+        release_name: Forex-Calculator ${{ env.RELEASE_TAG }}
         draft: false
         prerelease: false
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-    - name: Upload Artifacts to Release
-      run: |
-        gh release upload ${{ env.RELEASE_TAG }} artifacts/*
+        files: artifacts/*
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
