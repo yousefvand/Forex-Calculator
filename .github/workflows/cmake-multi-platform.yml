@@ -37,42 +37,29 @@ jobs:
         sudo apt update
         sudo apt install -y ninja-build build-essential cmake libgl1-mesa-dev libglu1-mesa-dev rsync \
           qt6-base-dev qt6-tools-dev qt6-tools-dev-tools qt6-l10n-tools qt6-declarative-dev \
-          qt6-multimedia-dev libpcre3 libpcre3-dev patchelf curl imagemagick fonts-dejavu
-
-    - name: Download AppImageTool (Ubuntu)
-      if: matrix.os == 'ubuntu-latest'
-      run: |
-        curl -Lo appimagetool https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
-        chmod +x appimagetool
-        sudo mv appimagetool /usr/local/bin/
-
+          qt6-multimedia-dev libpcre3 libpcre3-dev patchelf appimagetool
     - name: Configure CMake (Ubuntu)
       if: matrix.os == 'ubuntu-latest'
       run: |
         cmake -B build -DCMAKE_BUILD_TYPE=Release -G "Ninja" -S "${{ github.workspace }}"
-
     - name: Build Forex-Calculator (Ubuntu)
       if: matrix.os == 'ubuntu-latest'
       run: cmake --build build
 
-    - name: Package Forex-Calculator as AppImage (Ubuntu)
+    - name: Package Forex-Calculator (Ubuntu)
       if: matrix.os == 'ubuntu-latest'
       run: |
         mkdir -p AppDir/usr/bin
         cp build/Forex-Calculator AppDir/usr/bin/
-        
-        # Bundle dependencies using ldd
-        mkdir -p AppDir/usr/lib/
-        for lib in $(ldd build/Forex-Calculator | awk '{print $3}' | grep -v 'not'); do
-          cp -v "$lib" AppDir/usr/lib/ || true
+        # Bundle dependencies
+        for lib in $(ldd AppDir/usr/bin/Forex-Calculator | awk '{print $3}' | grep -v 'not'); do
+          cp -v "$lib" AppDir/usr/bin/ || true
         done
-        
-        # Copy additional required libraries
-        cp -v /lib/x86_64-linux-gnu/libpcre.so.3 AppDir/usr/lib/ || true
-
-        # Create AppImage desktop entry
+        # Copy desktop file and icon
+        mkdir -p AppDir/usr/share/icons/hicolor/256x256/apps
         mkdir -p AppDir/usr/share/applications
-        cat <<EOF > AppDir/usr/share/applications/forex-calculator.desktop
+        cp "${{ github.workspace }}/resources/forex-calculator.png" AppDir/usr/share/icons/hicolor/256x256/apps/
+        cat << 'EOF' > AppDir/usr/share/applications/forex-calculator.desktop
         [Desktop Entry]
         Name=Forex Calculator
         Exec=Forex-Calculator
@@ -80,32 +67,86 @@ jobs:
         Type=Application
         Categories=Utility;
         EOF
-
-        # Handle missing icon gracefully
-        mkdir -p AppDir/usr/share/icons/hicolor/256x256/apps
-        if [ -f assets/icons/forex-calculator.png ]; then
-          cp assets/icons/forex-calculator.png AppDir/usr/share/icons/hicolor/256x256/apps/forex-calculator.png
-        else
-          echo "Icon not found. Creating a placeholder icon."
-          convert -size 256x256 xc:white -fill black -font DejaVu-Sans -gravity center -pointsize 72 -draw "text 0,0 'FX'" AppDir/usr/share/icons/hicolor/256x256/apps/forex-calculator.png
-        fi
-
-        # Generate AppRun script
-        cat <<EOF > AppDir/AppRun
-        #!/bin/bash
-        exec "\$(dirname "\$0")/usr/bin/Forex-Calculator" "\$@"
-        EOF
-        chmod +x AppDir/AppRun
-
-        # Build the AppImage
+        # Create the AppImage
         appimagetool AppDir Forex-Calculator.AppImage
-        mv Forex-Calculator.AppImage artifacts/
 
-    - name: Upload AppImage Artifact (Ubuntu)
+    - name: Upload Artifact (Ubuntu)
       uses: actions/upload-artifact@v4
       with:
-        name: Forex-Calculator_ubuntu
-        path: artifacts/Forex-Calculator.AppImage
+        name: Forex-Calculator_linux
+        path: Forex-Calculator.AppImage
+
+    # ---------------------------
+    # macOS Section
+    # ---------------------------
+    - name: Install Dependencies (macOS)
+      if: matrix.os == 'macos-latest'
+      run: |
+        brew install ninja qt cmake
+    - name: Configure CMake (macOS)
+      if: matrix.os == 'macos-latest'
+      run: |
+        cmake -B build -DCMAKE_BUILD_TYPE=Release -G "Ninja" -S "${{ github.workspace }}"
+    - name: Build Forex-Calculator (macOS)
+      if: matrix.os == 'macos-latest'
+      run: cmake --build build
+
+    - name: Package Forex-Calculator (macOS)
+      if: matrix.os == 'macos-latest'
+      run: |
+        mkdir -p package
+        cp -R build/Forex-Calculator.app package/
+        macdeployqt package/Forex-Calculator.app -dmg
+        mv package/*.dmg Forex-Calculator_macos.dmg
+    - name: Upload Artifact (macOS)
+      uses: actions/upload-artifact@v4
+      with:
+        name: Forex-Calculator_macos
+        path: Forex-Calculator_macos.dmg
+
+    # ---------------------------
+    # Windows Section
+    # ---------------------------
+    - name: Install Dependencies (Windows)
+      if: matrix.os == 'windows-latest'
+      run: |
+        choco install ninja cmake mingw
+      shell: cmd
+
+    - name: Install Qt (Windows)
+      if: matrix.os == 'windows-latest'
+      uses: jurplel/install-qt-action@v4
+      with:
+        version: '6.5.3'
+        host: 'windows'
+        target: 'desktop'
+        arch: 'win64_mingw'
+
+    - name: Configure CMake (Windows)
+      if: matrix.os == 'windows-latest'
+      run: |
+        cmake -B build -DCMAKE_BUILD_TYPE=Release -G Ninja -S "${{ github.workspace }}"
+      shell: cmd
+
+    - name: Build Forex-Calculator (Windows)
+      if: matrix.os == 'windows-latest'
+      run: cmake --build build
+      shell: cmd
+
+    - name: Package Forex-Calculator (Windows)
+      if: matrix.os == 'windows-latest'
+      run: |
+        mkdir package
+        copy build\Forex-Calculator.exe package\
+        windeployqt.exe package\Forex-Calculator.exe
+        Compress-Archive -Path package -DestinationPath Forex-Calculator_windows.zip
+      shell: pwsh
+
+    - name: Upload Artifact (Windows)
+      uses: actions/upload-artifact@v4
+      with:
+        name: Forex-Calculator_windows
+        path: Forex-Calculator_windows.zip
 
   # ---------------------------
   # Publish Section
