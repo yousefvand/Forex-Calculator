@@ -33,35 +33,21 @@ jobs:
     # ---------------------------
     - name: Build Forex-Calculator AppImage (Ubuntu)
       if: matrix.os == 'ubuntu-latest'
-      uses: docker/build-push-action@v5
-      with:
-        push: false
-        tags: appimage-builder
-        context: .
-        dockerfile: |
-          FROM ubuntu:22.04
-          RUN apt update && apt install -y --no-install-recommends \
-              cmake ninja-build build-essential libgl1-mesa-dev libglu1-mesa-dev rsync \
-              qt6-base-dev qt6-tools-dev qt6-tools-dev-tools qt6-l10n-tools qt6-declarative-dev \
-              qt6-multimedia-dev libpcre3 libpcre3-dev patchelf wget xz-utils fuse
-          RUN wget https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage && \
-              chmod +x appimagetool-x86_64.AppImage && \
-              mv appimagetool-x86_64.AppImage /usr/local/bin/appimagetool
-          WORKDIR /workspace
-          COPY . .
-          RUN cmake -B build -DCMAKE_BUILD_TYPE=Release -G Ninja
-          RUN cmake --build build
-          RUN mkdir -p AppDir/usr/bin && \
-              cp build/Forex-Calculator AppDir/usr/bin/ && \
-              for lib in $(ldd AppDir/usr/bin/Forex-Calculator | awk '{print $3}' | grep -v 'not'); do \
-                  cp -v "$lib" AppDir/usr/bin/ || true; \
-              done && \
-              mkdir -p AppDir/usr/share/icons/hicolor/256x256/apps && \
-              mkdir -p AppDir/usr/share/applications && \
-              cp resources/forex-calculator.png AppDir/usr/share/icons/hicolor/256x256/apps/ && \
-              echo '[Desktop Entry]\nName=Forex Calculator\nExec=Forex-Calculator\nIcon=forex-calculator\nType=Application\nCategories=Utility;' > AppDir/usr/share/applications/forex-calculator.desktop && \
-              appimagetool AppDir Forex-Calculator.AppImage
-
+      run: |
+        docker build -t appimage-builder .
+        docker run --rm -v ${{ github.workspace }}:/workspace -w /workspace appimage-builder /bin/bash -c "
+          cmake -B build -DCMAKE_BUILD_TYPE=Release -G Ninja &&
+          cmake --build build &&
+          mkdir -p AppDir/usr/bin &&
+          cp build/Forex-Calculator AppDir/usr/bin/ &&
+          for lib in \$(ldd AppDir/usr/bin/Forex-Calculator | awk '{print \$3}' | grep -v 'not'); do
+            cp -v \"\$lib\" AppDir/usr/bin/ || true;
+          done &&
+          mkdir -p AppDir/usr/share/icons/hicolor/256x256/apps &&
+          mkdir -p AppDir/usr/share/applications &&
+          cp resources/forex-calculator.png AppDir/usr/share/icons/hicolor/256x256/apps/ &&
+          echo '[Desktop Entry]\nName=Forex Calculator\nExec=Forex-Calculator\nIcon=forex-calculator\nType=Application\nCategories=Utility;' > AppDir/usr/share/applications/forex-calculator.desktop &&
+          appimagetool AppDir Forex-Calculator.AppImage"
     - name: Upload Artifact (Ubuntu)
       uses: actions/upload-artifact@v4
       with:
