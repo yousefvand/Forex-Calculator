@@ -28,9 +28,9 @@ jobs:
     - name: Checkout Code
       uses: actions/checkout@v4
 
-    # ------------------------------------
+    # ---------------------------
     # Linux Section (AppImage with Docker)
-    # ------------------------------------
+    # ---------------------------
     - name: Build Forex-Calculator AppImage (Ubuntu)
       if: matrix.os == 'ubuntu-latest'
       run: |
