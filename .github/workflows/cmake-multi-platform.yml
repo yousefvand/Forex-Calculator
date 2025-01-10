@@ -55,7 +55,11 @@ jobs:
           done &&
           mkdir -p AppDir/usr/share/icons/hicolor/256x256/apps &&
           mkdir -p AppDir/usr/share/applications &&
-          cp resources/forex-calculator.png AppDir/usr/share/icons/hicolor/256x256/apps/ &&
+          if [ -f resources/forex-calculator.png ]; then
+            cp resources/forex-calculator.png AppDir/usr/share/icons/hicolor/256x256/apps/;
+          else
+            echo 'Error: forex-calculator.png not found in resources directory!' && exit 1;
+          fi &&
           echo '[Desktop Entry]\nName=Forex Calculator\nExec=Forex-Calculator\nIcon=forex-calculator\nType=Application\nCategories=Utility;' > AppDir/usr/share/applications/forex-calculator.desktop &&
           appimagetool AppDir Forex-Calculator.AppImage"
     - name: Upload Artifact (Ubuntu)
