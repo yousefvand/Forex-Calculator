@@ -53,7 +53,12 @@ jobs:
           mkdir -p AppDir/usr/share/icons/hicolor/256x256/apps &&
           mkdir -p AppDir/usr/share/applications &&
           cp resources/forex-calculator.png AppDir/usr/share/icons/hicolor/256x256/apps/ &&
-          echo '[Desktop Entry]\nName=Forex Calculator\nExec=Forex-Calculator\nIcon=forex-calculator\nType=Application\nCategories=Utility;' > AppDir/usr/share/applications/forex-calculator.desktop &&
+          echo '[Desktop Entry]
+          Name=Forex Calculator
+          Exec=Forex-Calculator
+          Icon=forex-calculator
+          Type=Application
+          Categories=Utility;' > AppDir/usr/share/applications/forex-calculator.desktop &&
           echo 'version: 1
           appdir:
             path: AppDir
