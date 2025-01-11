@@ -48,29 +48,29 @@ jobs:
           mkdir -p AppDir/usr/bin &&
           cp build/Forex-Calculator AppDir/usr/bin/ &&
           for lib in \$(ldd AppDir/usr/bin/Forex-Calculator | awk '{print \$3}' | grep -v 'not'); do
-            cp -v \"\$lib\" AppDir/usr/bin/ || true;
+            cp -v \"\$lib\" AppDir/usr/bin/ || true
           done &&
           mkdir -p AppDir/usr/share/icons/hicolor/256x256/apps &&
           mkdir -p AppDir/usr/share/applications &&
           cp resources/forex-calculator.png AppDir/usr/share/icons/hicolor/256x256/apps/ &&
           echo '[Desktop Entry]
-          Name=Forex Calculator
-          Exec=Forex-Calculator
-          Icon=forex-calculator
-          Type=Application
-          Categories=Utility;' > AppDir/usr/share/applications/forex-calculator.desktop &&
+Name=Forex Calculator
+Exec=Forex-Calculator
+Icon=forex-calculator
+Type=Application
+Categories=Utility;' > AppDir/usr/share/applications/forex-calculator.desktop &&
           echo 'version: 1
-          appdir:
-            path: AppDir
-            app_info:
-              id: forex.calculator
-              name: Forex Calculator
-              version: 1.0.0
-              exec: usr/bin/Forex-Calculator
-              icon: forex-calculator
-          runtime:
-            env:
-              PATH: /usr/bin' > appimage-builder.yml &&
+appdir:
+  path: AppDir
+  app_info:
+    id: forex.calculator
+    name: Forex Calculator
+    version: 1.0.0
+    exec: usr/bin/Forex-Calculator
+    icon: forex-calculator
+runtime:
+  env:
+    PATH: /usr/bin' > appimage-builder.yml &&
           appimage-builder --recipe appimage-builder.yml"
     - name: Upload Artifact (Ubuntu)
       uses: actions/upload-artifact@v4
