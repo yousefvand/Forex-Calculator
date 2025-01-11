@@ -47,8 +47,8 @@ jobs:
           cmake --build build &&
           mkdir -p AppDir/usr/bin &&
           cp build/Forex-Calculator AppDir/usr/bin/ &&
-          for lib in \$(ldd AppDir/usr/bin/Forex-Calculator | awk '{print \$3}' | grep -v 'not'); do
-            cp -v \"\$lib\" AppDir/usr/bin/ || true
+          for lib in $(ldd AppDir/usr/bin/Forex-Calculator | awk '{print $3}' | grep -v 'not'); do
+            cp -v \"$lib\" AppDir/usr/bin/ || true
           done &&
           mkdir -p AppDir/usr/share/icons/hicolor/256x256/apps &&
           mkdir -p AppDir/usr/share/applications &&
@@ -76,7 +76,7 @@ runtime:
       uses: actions/upload-artifact@v4
       with:
         name: Forex-Calculator_linux
-        path: *.AppImage
+        path: "*.AppImage"
 
     # ---------------------------
     # macOS Section
