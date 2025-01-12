@@ -47,6 +47,7 @@ jobs:
           EOF
           docker build -t appimage-builder .
           docker run --rm -v ${{ github.workspace }}:/workspace -w /workspace appimage-builder /bin/bash -c "
+            set -e &&
             cmake -B build -DCMAKE_BUILD_TYPE=Release -G Ninja &&
             cmake --build build &&
             mkdir -p AppDir/usr/bin &&
@@ -84,8 +85,13 @@ jobs:
             YML
             appimage-builder --recipe appimage-builder.yml &&
             ls -l &&
+            if [ ! -f *.AppImage ]; then
+              echo 'Error: AppImage file not created by appimage-builder!' &&
+              ls -l &&
+              exit 1
+            fi &&
             mkdir -p artifacts &&
-            mv *.AppImage artifacts/ || { echo 'AppImage not found!'; ls -l; exit 1; }"
+            mv *.AppImage artifacts/"
       - name: Upload Artifact (Ubuntu)
         uses: actions/upload-artifact@v4
         with:
