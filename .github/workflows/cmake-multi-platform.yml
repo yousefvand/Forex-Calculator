@@ -35,34 +35,53 @@ jobs:
       - name: Build Forex-Calculator AppImage (Ubuntu)
         if: matrix.os == 'ubuntu-latest'
         run: |
-          echo "FROM ubuntu:22.04
+          cat <<EOF > Dockerfile
+          FROM ubuntu:22.04
           RUN apt update && apt install -y --no-install-recommends \
               cmake ninja-build build-essential libgl1-mesa-dev libglu1-mesa-dev rsync \
               qt6-base-dev qt6-tools-dev qt6-tools-dev-tools qt6-l10n-tools qt6-declarative-dev \
               qt6-multimedia-dev libpcre3 libpcre3-dev patchelf wget xz-utils fuse python3 python3-pip \
               libgtk-3-dev
           RUN pip3 install appimage-builder
-          WORKDIR /workspace" > Dockerfile
+          WORKDIR /workspace
+          EOF
           docker build -t appimage-builder .
           docker run --rm -v ${{ github.workspace }}:/workspace -w /workspace appimage-builder /bin/bash -c "
             cmake -B build -DCMAKE_BUILD_TYPE=Release -G Ninja &&
             cmake --build build &&
             mkdir -p AppDir/usr/bin &&
             cp build/Forex-Calculator AppDir/usr/bin/ &&
-            for lib in $(ldd AppDir/usr/bin/Forex-Calculator | awk '{print $3}' | grep -v 'not'); do
-              cp -v \"$lib\" AppDir/usr/bin/ || true
+            for lib in \$(ldd AppDir/usr/bin/Forex-Calculator | awk '{print \$3}' | grep -v 'not'); do
+              cp -v \"\$lib\" AppDir/usr/bin/ || true
             done &&
             mkdir -p AppDir/usr/share/icons/hicolor/256x256/apps &&
             cp resources/forex-calculator.png AppDir/usr/share/icons/hicolor/256x256/apps/ &&
             mkdir -p AppDir/usr/share/applications &&
-            echo '[Desktop Entry]
-Name=Forex Calculator
-Exec=usr/bin/Forex-Calculator
-Icon=forex-calculator
-Type=Application
-Categories=Utility;' > AppDir/usr/share/applications/forex.calculator.desktop &&
-            ls -R AppDir &&  # Debug: Verify AppDir structure
-            printf 'version: 1\nAppDir:\n  path: AppDir\n  app_info:\n    id: forex.calculator\n    name: Forex Calculator\n    version: 1.0.0\n    exec: usr/bin/Forex-Calculator\n    icon: forex-calculator\n  files:\n    exclude:\n      - usr/share/doc\n      - usr/share/man\n      - usr/share/icons/hicolor/index.theme\n' > appimage-builder.yml &&
+            cat <<DESKTOP > AppDir/usr/share/applications/forex.calculator.desktop
+            [Desktop Entry]
+            Name=Forex Calculator
+            Exec=usr/bin/Forex-Calculator
+            Icon=forex-calculator
+            Type=Application
+            Categories=Utility;
+            DESKTOP
+            ls -R AppDir &&
+            cat <<YML > appimage-builder.yml
+            version: 1
+            AppDir:
+              path: AppDir
+              app_info:
+                id: forex.calculator
+                name: Forex Calculator
+                version: 1.0.0
+                exec: usr/bin/Forex-Calculator
+                icon: forex-calculator
+              files:
+                exclude:
+                  - usr/share/doc
+                  - usr/share/man
+                  - usr/share/icons/hicolor/index.theme
+            YML
             appimage-builder --recipe appimage-builder.yml &&
             mv *.AppImage artifacts/"
       - name: Upload Artifact (Ubuntu)
