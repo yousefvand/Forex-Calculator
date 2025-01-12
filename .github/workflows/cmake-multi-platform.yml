@@ -56,12 +56,13 @@ jobs:
             mkdir -p AppDir/usr/share/applications &&
             cp resources/forex-calculator.png AppDir/usr/share/icons/hicolor/256x256/apps/ &&
             printf 'version: 1\nAppDir:\n  path: AppDir\n  app_info:\n    id: forex.calculator\n    name: Forex Calculator\n    version: 1.0.0\n    exec: usr/bin/Forex-Calculator\n    icon: forex-calculator\n  files:\n    exclude:\n      - usr/share/doc\n      - usr/share/man\n      - usr/share/icons/hicolor/index.theme\n' > appimage-builder.yml &&
-            appimage-builder --recipe appimage-builder.yml"
+            appimage-builder --recipe appimage-builder.yml &&
+            mv *.AppImage artifacts/"
       - name: Upload Artifact (Ubuntu)
         uses: actions/upload-artifact@v4
         with:
           name: Forex-Calculator_linux
-          path: "*.AppImage"
+          path: artifacts/*.AppImage
 
       # macOS Section
       - name: Install Dependencies (macOS)
