@@ -148,8 +148,15 @@ jobs:
           path: artifacts
           merge-multiple: true
 
-      - name: Generate Release Tag
-        run: echo "RELEASE_TAG=release-$(date +%Y%m%d%H%M%S)" >> $GITHUB_ENV
+      - name: List Downloaded Artifacts
+        run: ls -R artifacts
+
+      - name: Validate Ubuntu Artifact
+        run: |
+          if [ ! -f artifacts/Forex-Calculator_linux.AppImage ]; then
+            echo "Ubuntu artifact (AppImage) missing!"
+            exit 1
+          fi
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
@@ -158,6 +165,9 @@ jobs:
           release_name: Forex-Calculator ${{ env.RELEASE_TAG }}
           draft: false
           prerelease: false
-          files: artifacts/*
+          files: |
+            artifacts/Forex-Calculator_linux.AppImage
+            artifacts/Forex-Calculator_macos.dmg
+            artifacts/Forex-Calculator_windows.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
