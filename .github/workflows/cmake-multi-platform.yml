@@ -53,8 +53,15 @@ jobs:
               cp -v \"$lib\" AppDir/usr/bin/ || true
             done &&
             mkdir -p AppDir/usr/share/icons/hicolor/256x256/apps &&
-            mkdir -p AppDir/usr/share/applications &&
             cp resources/forex-calculator.png AppDir/usr/share/icons/hicolor/256x256/apps/ &&
+            mkdir -p AppDir/usr/share/applications &&
+            echo '[Desktop Entry]
+Name=Forex Calculator
+Exec=usr/bin/Forex-Calculator
+Icon=forex-calculator
+Type=Application
+Categories=Utility;' > AppDir/usr/share/applications/forex.calculator.desktop &&
+            ls -R AppDir &&  # Debug: Verify AppDir structure
             printf 'version: 1\nAppDir:\n  path: AppDir\n  app_info:\n    id: forex.calculator\n    name: Forex Calculator\n    version: 1.0.0\n    exec: usr/bin/Forex-Calculator\n    icon: forex-calculator\n  files:\n    exclude:\n      - usr/share/doc\n      - usr/share/man\n      - usr/share/icons/hicolor/index.theme\n' > appimage-builder.yml &&
             appimage-builder --recipe appimage-builder.yml &&
             mv *.AppImage artifacts/"
