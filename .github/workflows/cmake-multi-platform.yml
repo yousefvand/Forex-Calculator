@@ -54,7 +54,7 @@ jobs:
             mkdir -p AppDir/usr/share/icons/hicolor/256x256/apps &&
             mkdir -p AppDir/usr/share/applications &&
             cp resources/forex-calculator.png AppDir/usr/share/icons/hicolor/256x256/apps/ &&
-            printf 'version: 1\nAppDir:\n  path: AppDir\n  app_info:\n    id: forex.calculator\n    name: Forex Calculator\n    version: 1.0.0\n    exec: usr/bin/Forex-Calculator\n    icon: forex-calculator\n  files:\n    exclude:\n      - usr/share/doc\n      - usr/share/man\n      - usr/share/icons/hicolor/index.theme\nruntime:\n  env:\n    PATH: /usr/bin\n' > appimage-builder.yml &&
+            printf 'version: 1\nAppDir:\n  path: AppDir\n  app_info:\n    id: forex.calculator\n    name: Forex Calculator\n    version: 1.0.0\n    exec: usr/bin/Forex-Calculator\n    icon: forex-calculator\n  environment:\n    PATH: /usr/bin\n  files:\n    exclude:\n      - usr/share/doc\n      - usr/share/man\n      - usr/share/icons/hicolor/index.theme\n' > appimage-builder.yml &&
             appimage-builder --recipe appimage-builder.yml"
       - name: Upload Artifact (Ubuntu)
         uses: actions/upload-artifact@v4
